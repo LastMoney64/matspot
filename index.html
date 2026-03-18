@@ -530,8 +530,6 @@ function renderMyMarkers() {
   if (!map) return;
   myMarkers.forEach(m => m.setMap(null));
   myMarkers = [];
-  if (currentFilter !== '전체' && currentFilter !== '내맛집') return;
-  // My restaurants don't have coords typically, skip map markers for them
 }
 
 // ===== KAKAO LOCAL API =====
@@ -624,8 +622,49 @@ function filterMap(cat, btn) {
   currentFilter = cat;
   document.querySelectorAll('.filter-chip').forEach(c => c.classList.remove('active'));
   btn.classList.add('active');
-  addMarkers(getAllData());
-  renderSidebar();
+  if (cat === '내맛집') {
+    const myNames = new Set(getMyRestaurants().map(r => r.name));
+    const myData = getAllData().filter(r => myNames.has(r.name));
+    clearMarkers();
+    if (myData.length > 0) {
+      addMarkers(myData);
+      // 첫 번째 맛집으로 지도 이동
+      panTo(myData[0].lat, myData[0].lng);
+    }
+    renderMyMapSidebar();
+  } else {
+    addMarkers(getAllData());
+    renderSidebar();
+  }
+}
+
+function renderMyMapSidebar() {
+  const list = getMyRestaurants();
+  const allData = getAllData();
+  const sb = document.getElementById('sidebar');
+  if (list.length === 0) {
+    sb.innerHTML = '<div class="sidebar-title">내 맛집 <span>0개</span></div><div style="text-align:center;color:var(--text3);padding:40px;font-size:13px">아직 등록한 맛집이 없어요 ✨</div>';
+    return;
+  }
+  sb.innerHTML = `<div class="sidebar-title">내 맛집 <span>${list.length}개</span></div>` +
+    list.map(r => {
+      const matched = allData.find(d => d.name === r.name);
+      const onclick = matched
+        ? `panTo(${matched.lat},${matched.lng});openModal(findById('${matched.id}'))`
+        : `openMyModal('${r.id}')`;
+      return `
+      <div class="sidebar-item" onclick="${onclick}">
+        <div class="sidebar-emoji" style="background:rgba(255,209,102,.2)">${r.emoji}</div>
+        <div class="sidebar-info">
+          <h4>${r.name}</h4>
+          <div class="meta">
+            <span class="rating">★ ${r.rating||'-'}</span>
+            <span>${r.category}</span>
+            <span class="status-badge ${r.status}" style="font-size:10px">${r.status==='visited'?'방문완료':'가고싶어요'}</span>
+          </div>
+        </div>
+      </div>`;
+    }).join('');
 }
 
 function centerMap() {
@@ -661,7 +700,8 @@ function updateSidebarByMap() {
     const pos = new kakao.maps.LatLng(r.lat, r.lng);
     return bounds.contain(pos);
   });
-  if (currentFilter !== '전체' && currentFilter !== '내맛집') data = data.filter(r => r.category === currentFilter);
+  if (currentFilter === '내맛집') { renderMyMapSidebar(); return; }
+  if (currentFilter !== '전체') data = data.filter(r => r.category === currentFilter);
   data.sort((a,b) => getDistanceFromCenter(a) - getDistanceFromCenter(b));
   const sb = document.getElementById('sidebar');
   sb.innerHTML = `<div class="sidebar-title">주변 맛집 <span>${data.length}개</span></div>` +
@@ -799,7 +839,7 @@ function openMyModal(id) {
       </div>
     </div>
   `;
-  document.getElementById('modal').classList.add('open');
+  document.getElementById('modalOverlay').classList.add('show');
 }
 
 // ===== MODAL =====

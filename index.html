@@ -973,6 +973,7 @@ function updateStars(n) {
 }
 
 async function saveMyRestaurant() {
+  console.log('[저장] 시작, currentUser:', currentUser?.id);
   const name = document.getElementById('myName').value.trim();
   if (!name) { toast('가게명을 입력해주세요'); return; }
   const isEdit = !!editId;
@@ -981,10 +982,11 @@ async function saveMyRestaurant() {
     name,
     category: document.getElementById('myCat').value,
     address: document.getElementById('myAddr').value.trim(),
-    rating: myRating || 3,
+    rating: parseInt(myRating) || 3,
     status: document.getElementById('myStatus').value,
     memo: document.getElementById('myMemo').value.trim()
   };
+  console.log('[저장] entry:', entry);
   if (!currentUser) {
     const list = getMyRestaurants();
     if (isEdit) {
@@ -996,19 +998,23 @@ async function saveMyRestaurant() {
     saveToLS(list);
   } else {
     try {
-      const { error } = isEdit
+      console.log('[저장] Supabase insert 시도...');
+      const result = isEdit
         ? await supa.from('user_restaurants').update(entry).eq('id', editId)
         : await supa.from('user_restaurants').insert({ ...entry, user_id: currentUser.id });
-      if (error) throw error;
+      console.log('[저장] Supabase 결과:', result);
+      if (result.error) throw result.error;
       await loadMyRestaurants();
+      console.log('[저장] loadMyRestaurants 완료, 건수:', myRestaurantsList.length);
     } catch (e) {
-      toast('저장 실패: ' + (e.message || '다시 시도해주세요'));
+      console.error('[저장] 에러:', e);
+      toast('저장 실패: ' + (e.message || JSON.stringify(e)));
       return;
     }
   }
   editId = null;
   resetForm();
-  renderMyTab();
+  try { renderMyTab(); } catch(e) { console.error('[저장] renderMyTab 에러:', e); }
   toast(isEdit ? '수정 완료!' : '맛집이 등록되었어요! 🎉');
 }
 

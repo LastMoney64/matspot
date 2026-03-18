@@ -87,8 +87,18 @@ html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--text);fon
 /* ===== LIST TAB ===== */
 .list-tab{overflow:hidden}
 .list-toolbar{display:flex;gap:6px;padding:12px 20px;flex-wrap:wrap;align-items:center}
+.list-filter-tabs{display:flex;gap:6px;padding:0 20px 10px;border-bottom:1px solid var(--border);margin-bottom:4px}
+.list-filter-btn{padding:7px 16px;border-radius:20px;border:1px solid var(--border);background:var(--surface2);color:var(--text2);cursor:pointer;font-size:12px;font-weight:600;transition:all .2s;font-family:inherit}
+.list-filter-btn.active{background:var(--accent);color:#fff;border-color:var(--accent)}
 .sort-btn{padding:6px 12px;border-radius:16px;border:1px solid var(--border);background:var(--surface2);color:var(--text2);cursor:pointer;font-size:12px;transition:all .2s;font-family:inherit}
 .sort-btn.active{background:var(--accent);color:#fff;border-color:var(--accent)}
+.my-card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:16px;cursor:pointer;transition:all .2s}
+.my-card:hover{border-color:var(--accent);transform:translateY(-2px)}
+.my-card-top{display:flex;align-items:center;gap:10px;margin-bottom:8px}
+.my-card-emoji{font-size:28px}
+.my-card-title{font-size:15px;font-weight:700}
+.my-card-sub{font-size:12px;color:var(--text3);margin-top:2px}
+.my-card-memo{font-size:12px;color:var(--text2);margin-top:6px;padding:6px 10px;background:var(--surface2);border-radius:8px}
 .card-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:14px;padding:0 20px 20px;overflow-y:auto;flex:1}
 .card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:16px;cursor:pointer;transition:all .25s}
 .card:hover{transform:translateY(-3px);border-color:var(--accent);box-shadow:0 0 20px rgba(255,75,75,.08)}
@@ -264,7 +274,12 @@ html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--text);fon
 
     <!-- LIST TAB -->
     <div class="tab-content list-tab" id="tab-list">
-      <div class="list-toolbar">
+      <div class="list-filter-tabs">
+        <button class="list-filter-btn active" onclick="setListFilter('all',this)">🍽️ 전체</button>
+        <button class="list-filter-btn" onclick="setListFilter('my',this)">⭐ 나의 맛집</button>
+        <button class="list-filter-btn" onclick="setListFilter('saved',this)">💛 즐겨찾기</button>
+      </div>
+      <div class="list-toolbar" id="listSortBar">
         <button class="sort-btn active" data-sort="rating" onclick="sortList('rating',this)">⭐ 평점순</button>
         <button class="sort-btn" data-sort="wait" onclick="sortList('wait',this)">⏱️ 대기 적은순</button>
         <button class="sort-btn" data-sort="distance" onclick="sortList('distance',this)">📍 거리순</button>
@@ -409,6 +424,7 @@ async function loadMyRestaurants() {
 let map, markers = [], myMarkers = [];
 let currentFilter = '전체';
 let currentSort = 'rating';
+let listFilter = 'all';
 let editId = null;
 let selectedEmoji = '🍜';
 let myRating = 0;
@@ -673,8 +689,44 @@ function renderSidebar() {
 }
 
 // ===== LIST TAB =====
+function setListFilter(type, btn) {
+  listFilter = type;
+  document.querySelectorAll('.list-filter-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  const sortBar = document.getElementById('listSortBar');
+  if (sortBar) sortBar.style.display = type === 'my' ? 'none' : '';
+  renderCardGrid();
+}
+
 function renderCardGrid(data) {
-  data = data || getAllData();
+  if (listFilter === 'my') {
+    const list = getMyRestaurants();
+    document.getElementById('cardGrid').innerHTML = list.length === 0
+      ? '<div style="grid-column:1/-1;text-align:center;color:var(--text3);padding:60px 20px">아직 등록한 맛집이 없어요 ✨<br><small style="font-size:12px;margin-top:8px;display:block">나의 맛집 탭에서 직접 등록해보세요</small></div>'
+      : list.map(r => `
+        <div class="my-card" onclick="openMyModal('${r.id}')">
+          <div class="my-card-top">
+            <div class="my-card-emoji">${r.emoji}</div>
+            <div>
+              <div class="my-card-title">${r.name} <span class="status-badge ${r.status}">${r.status==='visited'?'방문완료':'가고싶어요'}</span></div>
+              <div class="my-card-sub">${r.category} · ${'★'.repeat(parseInt(r.rating)||0)}${'☆'.repeat(5-(parseInt(r.rating)||0))} · ${r.address||'주소 없음'}</div>
+            </div>
+          </div>
+          ${r.memo ? `<div class="my-card-memo">💬 ${r.memo}</div>` : ''}
+        </div>
+      `).join('');
+    return;
+  }
+  if (listFilter === 'saved') {
+    const savedNames = new Set(getMyRestaurants().map(r => r.name));
+    data = getAllData().filter(r => savedNames.has(r.name));
+    if (data.length === 0) {
+      document.getElementById('cardGrid').innerHTML = '<div style="grid-column:1/-1;text-align:center;color:var(--text3);padding:60px 20px">즐겨찾기한 맛집이 없어요 💛<br><small style="font-size:12px;margin-top:8px;display:block">맛집 카드에서 저장 버튼을 눌러보세요</small></div>';
+      return;
+    }
+  } else {
+    data = data || getAllData();
+  }
   switch(currentSort) {
     case 'rating': data.sort((a,b) => b.avgRating - a.avgRating); break;
     case 'wait': data.sort((a,b) => a.wait.current - b.wait.current); break;
@@ -713,6 +765,41 @@ function sortList(sort, btn) {
   document.querySelectorAll('.sort-btn').forEach(b => b.classList.remove('active'));
   btn.classList.add('active');
   renderCardGrid();
+}
+
+function openMyModal(id) {
+  const list = getMyRestaurants();
+  const r = list.find(x => x.id === id);
+  if (!r) return;
+  document.getElementById('modalContent').innerHTML = `
+    <div class="modal-hero 기타" style="background:linear-gradient(135deg,#2a2a3a,#1a1a2e)">
+      <button class="modal-close" onclick="closeModal()">✕</button>
+      <div class="big-emoji">${r.emoji}</div>
+      <h2>${r.name}</h2>
+      <div class="cat-label">${r.category} · <span class="status-badge ${r.status}" style="font-size:12px">${r.status==='visited'?'방문완료':'가고싶어요'}</span></div>
+    </div>
+    <div class="modal-body">
+      <div class="section-title">⭐ 내 평점</div>
+      <div style="font-size:24px;margin-bottom:16px">${'★'.repeat(parseInt(r.rating)||0)}${'☆'.repeat(5-(parseInt(r.rating)||0))} <span style="font-size:14px;color:var(--text3)">(${r.rating||0}/5)</span></div>
+      ${r.memo ? `
+        <div class="section-title">💬 메모</div>
+        <div style="padding:12px;background:var(--surface2);border-radius:12px;font-size:14px;line-height:1.6;margin-bottom:16px;color:var(--text2)">${r.memo}</div>
+      ` : ''}
+      <div class="section-title">📌 기본정보</div>
+      <div class="info-list">
+        ${r.address ? `<div class="info-row"><span class="info-icon">📍</span><span class="info-val">${r.address}</span></div>` : ''}
+        <div class="info-row"><span class="info-icon">🗂️</span><span class="info-val">${r.category}</span></div>
+        <div class="info-row"><span class="info-icon">📋</span><span class="info-val">${r.status==='visited'?'✅ 방문완료':'⭐ 가고싶어요'}</span></div>
+      </div>
+      <div class="modal-actions">
+        ${r.address ? `<button class="action-btn" onclick="window.open('https://map.kakao.com/link/search/${encodeURIComponent(r.name)}','_blank')"><span class="action-icon">🗺️</span>카카오맵</button>` : ''}
+        <button class="action-btn" onclick="closeModal();switchTab('my');setTimeout(()=>editMyRestaurant('${r.id}'),100)"><span class="action-icon">✏️</span>수정</button>
+        <button class="action-btn" onclick="closeModal();deleteMyRestaurant('${r.id}')"><span class="action-icon">🗑️</span>삭제</button>
+        <button class="action-btn" onclick="shareRestaurant('${r.name}')"><span class="action-icon">🔗</span>공유</button>
+      </div>
+    </div>
+  `;
+  document.getElementById('modal').classList.add('open');
 }
 
 // ===== MODAL =====
@@ -925,14 +1012,14 @@ function renderMyTab() {
   document.getElementById('myList').innerHTML = list.length === 0
     ? '<div style="text-align:center;color:var(--text3);padding:40px">아직 등록한 맛집이 없어요 ✨</div>'
     : list.map(r => `
-      <div class="my-list-item">
+      <div class="my-list-item" onclick="openMyModal('${r.id}')" style="cursor:pointer">
         <div class="emoji">${r.emoji}</div>
         <div class="info">
           <h4>${r.name} <span class="status-badge ${r.status}">${r.status==='visited'?'방문완료':'가고싶어요'}</span></h4>
-          <div class="sub">${r.category} · ${'★'.repeat(r.rating)}${'☆'.repeat(5-r.rating)}</div>
+          <div class="sub">${r.category} · ${'★'.repeat(parseInt(r.rating)||0)}${'☆'.repeat(5-(parseInt(r.rating)||0))}</div>
           ${r.memo?`<div class="memo">💬 ${r.memo}</div>`:''}
         </div>
-        <div class="my-list-actions">
+        <div class="my-list-actions" onclick="event.stopPropagation()">
           <button onclick="editMyRestaurant('${r.id}')" title="수정">✏️</button>
           <button onclick="deleteMyRestaurant('${r.id}')" title="삭제">🗑️</button>
         </div>
@@ -1001,11 +1088,7 @@ async function saveMyRestaurant() {
       const result = isEdit
         ? await supa.from('user_restaurants').update(entry).eq('id', editId)
         : await supa.from('user_restaurants').insert({ ...entry, user_id: currentUser.id });
-      if (result.error) {
-        alert('저장 실패!\n에러: ' + result.error.message + '\n코드: ' + result.error.code);
-        throw result.error;
-      }
-      alert('저장 성공! DB에 저장되었습니다 ✅');
+      if (result.error) throw result.error;
       await loadMyRestaurants();
     } catch (e) {
       console.error('[저장] 에러:', e);

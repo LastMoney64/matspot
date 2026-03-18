@@ -995,12 +995,16 @@ async function saveMyRestaurant() {
     }
     saveToLS(list);
   } else {
-    if (isEdit) {
-      await supa.from('user_restaurants').update(entry).eq('id', editId);
-    } else {
-      await supa.from('user_restaurants').insert({ ...entry, user_id: currentUser.id });
+    try {
+      const { error } = isEdit
+        ? await supa.from('user_restaurants').update(entry).eq('id', editId)
+        : await supa.from('user_restaurants').insert({ ...entry, user_id: currentUser.id });
+      if (error) throw error;
+      await loadMyRestaurants();
+    } catch (e) {
+      toast('저장 실패: ' + (e.message || '다시 시도해주세요'));
+      return;
     }
-    await loadMyRestaurants();
   }
   editId = null;
   resetForm();

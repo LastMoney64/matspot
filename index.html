@@ -326,7 +326,21 @@ const RESTAURANTS = [
   {id:3,name:'쭈꾸미네',category:'한식',emoji:'🌶️',type:'hot',lat:37.4278,lng:127.2534,address:'경기도 광주시 송정로 12',hours:'11:00~23:00',phone:'031-345-6789',ratings:{naver:4.5,google:4.3,blog:178,instagram:3400},avgRating:4.4,distance:'90m',wait:{current:5,status:'low',percent:20},tags:['#쭈꾸미','#매운맛','#술안주'],menus:[{name:'불쭈꾸미',price:'13,000원',emoji:'🌶️',desc:'중독적인 매운 양념',best:true},{name:'쭈삼볶음',price:'14,000원',emoji:'🥘',desc:'쭈꾸미+삼겹살 콤보'},{name:'볶음밥',price:'3,000원',emoji:'🍚',desc:'마무리 필수 볶음밥'}],description:'현지인들이 즐겨찾는 쭈꾸미 전문점. 직접 만든 비법 소스가 중독성 있음.'},
   {id:4,name:'카페 블루문',category:'카페',emoji:'☕',type:'new',lat:37.4265,lng:127.2601,address:'경기도 광주시 탄벌로 23',hours:'09:00~22:00',phone:'031-456-7890',ratings:{naver:4.6,google:4.7,blog:89,instagram:12400},avgRating:4.65,distance:'450m',wait:{current:8,status:'low',percent:30},tags:['#감성카페','#인스타감성','#광주카페'],menus:[{name:'블루라떼',price:'7,500원',emoji:'💙',desc:'나비완두콩 라떼, 포토존 필수',best:true},{name:'크로플',price:'6,000원',emoji:'🧇',desc:'바삭한 수제 크로플'},{name:'아메리카노',price:'4,500원',emoji:'☕',desc:'스페셜티 원두 사용'}],description:'광주 탄벌동 감성 카페. 인스타 핫플로 내부 인테리어가 아름다워 사진 찍기 최적.'},
   {id:5,name:'명동교자 광주점',category:'중식',emoji:'🥟',type:'good',lat:37.4288,lng:127.2523,address:'경기도 광주시 광주대로 56',hours:'11:30~21:00',phone:'031-567-8901',ratings:{naver:4.4,google:4.2,blog:134,instagram:2100},avgRating:4.3,distance:'220m',wait:{current:18,status:'mid',percent:60},tags:['#만두','#칼국수','#점심'],menus:[{name:'교자만두',price:'9,000원',emoji:'🥟',desc:'얇은 피에 꽉 찬 소',best:true},{name:'칼국수',price:'9,000원',emoji:'🍜',desc:'시원한 사골 칼국수'},{name:'비빔국수',price:'8,500원',emoji:'🍝',desc:'새콤달콤 비빔국수'}],description:'서울 명동 본점의 맛을 그대로 재현. 얇고 쫀득한 만두피가 특징.'},
-  {id:6,name:'마포 빵공장',category:'카페',emoji:'🥐',type:'new',lat:37.4255,lng:127.2615,address:'경기도 광주시 곤지암로 89',hours:'07:30~20:00 (재료소진시 마감)',phone:'031-678-9012',ratings:{naver:4.8,google:4.6,blog:67,instagram:5600},avgRating:4.7,distance:'610m',wait:{current:3,status:'low',percent:10},tags:['#베이커리','#크루아상','#아침식사'],menus:[{name:'버터크루아상',price:'4,200원',emoji:'🥐',desc:'100% 프랑스 버터 사용',best:true},{name:'소금빵',price:'3,500원',emoji:'🍞',desc:'겉바속촉 소금빵'},{name:'얼그레이번',price:'4,500원',emoji:'🫖',desc:'향긋한 얼그레이 크림'}],description:'매일 새벽 4시부터 직접 굽는 정통 프랑스 베이커리. 오전 11시면 대부분 소진.'}
+  {id:6,name:'마포 빵공장',category:'카페',emoji:'🥐',type:'new',lat:37.4255,lng:127.2615,address:'경기도 광주시 곤지암로 89',hours:'07:30~20:00 (재료소진시 마감)',phone:'031-678-9012',ratings:{naver:4.8,google:4.6,blog:67,instagram:5600},avgRating:4.7,distance:'610m',wait:{current:3,status:'low',percent:10},tags:['#베이커리','#크루아상','#아침식사'],menus:[{name:'버터크루아상',price:'4,200원',emoji:'🥐',desc:'100% 프랑스 버터 사용',best:true},{name:'소금빵',price:'3,500원',emoji:'🍞',desc:'겉바속촉 소금빵'},{name:'얼그레이번',price:'4,500원',emoji:'🫖',desc:'향긋한 얼그레이 크림'}],description:'매일 새벽 4시부터 직접 굽는 정통 프랑스 베이커리. 오전 11시면 대부분 소진.'},
+  {id:7,name:'광주 한우집',category:'한식',emoji:'🥩',type:'best',lat:37.4322,lng:127.2508,address:'경기도 광주시 중앙로 102',hours:'11:30~22:00 (일 휴무)',phone:'031-789-0123',ratings:{naver:4.8,google:4.7,blog:312,instagram:6700},avgRating:4.75,distance:'350m',wait:{current:28,status:'high',percent:80},tags:['#한우','#광주맛집','#특별한날'],menus:[{name:'한우 등심',price:'55,000원',emoji:'🥩',desc:'1++ 등급 최상급 등심',best:true},{name:'한우 갈비살',price:'48,000원',emoji:'🥩',desc:'부드럽고 풍부한 마블링'},{name:'육회',price:'25,000원',emoji:'🍖',desc:'신선한 당일 한우 육회'}],description:'경기 광주 대표 한우 전문점. 직접 농장과 계약해 산지에서 바로 공수하는 최상급 한우만 취급.'},
+  {id:8,name:'라멘야 토라',category:'일식',emoji:'🍜',type:'hot',lat:37.4298,lng:127.2572,address:'경기도 광주시 경안로 134',hours:'11:00~21:00 (수 휴무)',phone:'031-890-1234',ratings:{naver:4.6,google:4.5,blog:189,instagram:4300},avgRating:4.55,distance:'260m',wait:{current:22,status:'mid',percent:65},tags:['#라멘','#일본식라멘','#광주일식'],menus:[{name:'돈코츠 라멘',price:'13,000원',emoji:'🍜',desc:'18시간 우린 진한 돼지뼈 육수',best:true},{name:'쇼유 라멘',price:'12,000원',emoji:'🍜',desc:'깔끔한 간장 베이스 라멘'},{name:'교자',price:'7,000원',emoji:'🥟',desc:'겉바속촉 군만두 8개'}],description:'오사카 출신 요리사가 운영하는 정통 일본 라멘집. 매일 아침 직접 우린 육수가 핵심.'},
+  {id:9,name:'사천성 마라탕',category:'중식',emoji:'🫕',type:'hot',lat:37.4271,lng:127.2547,address:'경기도 광주시 송정로 67',hours:'10:30~22:00',phone:'031-901-2345',ratings:{naver:4.5,google:4.4,blog:156,instagram:5200},avgRating:4.45,distance:'140m',wait:{current:15,status:'mid',percent:50},tags:['#마라탕','#마라샹궈','#중독주의'],menus:[{name:'마라탕',price:'15,000원~',emoji:'🫕',desc:'재료 무게당 계산, 얼얼한 사천 마라',best:true},{name:'마라샹궈',price:'18,000원~',emoji:'🥘',desc:'볶음형 마라 요리'},{name:'탕수육',price:'16,000원',emoji:'🍖',desc:'바삭한 정통 탕수육'}],description:'사천성 출신 주방장이 직접 수입한 진짜 화자오로 만드는 정통 마라탕. 중독성 최강.'},
+  {id:10,name:'도쿄 카레 본점',category:'일식',emoji:'🍛',type:'good',lat:37.4309,lng:127.2560,address:'경기도 광주시 탄벌로 88',hours:'11:00~20:30 (화 휴무)',phone:'031-012-3456',ratings:{naver:4.4,google:4.3,blog:98,instagram:2800},avgRating:4.35,distance:'195m',wait:{current:7,status:'low',percent:25},tags:['#카레','#일본카레','#점심특선'],menus:[{name:'치킨카레',price:'11,000원',emoji:'🍛',desc:'부드러운 닭가슴살 일본 카레',best:true},{name:'돈카츠카레',price:'13,000원',emoji:'🍱',desc:'바삭한 돈카츠 + 카레'},{name:'에비카레',price:'14,000원',emoji:'🦐',desc:'통새우 3마리가 들어간 에비카레'}],description:'일본 현지 레시피 그대로 재현한 카레 전문점. 20가지 향신료를 직접 블렌딩해 깊은 풍미.'},
+  {id:11,name:'뚝배기 순두부',category:'한식',emoji:'🍲',type:'good',lat:37.4285,lng:127.2490,address:'경기도 광주시 광주대로 112',hours:'07:00~21:00',phone:'031-123-5678',ratings:{naver:4.5,google:4.3,blog:143,instagram:1900},avgRating:4.4,distance:'280m',wait:{current:4,status:'low',percent:15},tags:['#순두부찌개','#아침식사','#해장국'],menus:[{name:'얼큰 순두부',price:'9,000원',emoji:'🍲',desc:'칼칼한 홍고추 순두부찌개',best:true},{name:'해물 순두부',price:'10,000원',emoji:'🦑',desc:'새우·조개 가득 해물 순두부'},{name:'청국장',price:'9,000원',emoji:'🫙',desc:'구수한 전통 청국장'}],description:'새벽 7시부터 문을 여는 든든한 순두부 전문점. 국산 콩으로 매일 직접 만드는 손두부 사용.'},
+  {id:12,name:'와인바 비노',category:'카페',emoji:'🍷',type:'new',lat:37.4261,lng:127.2633,address:'경기도 광주시 곤지암로 145',hours:'17:00~02:00 (월 휴무)',phone:'031-234-6789',ratings:{naver:4.7,google:4.6,blog:55,instagram:7800},avgRating:4.65,distance:'720m',wait:{current:6,status:'low',percent:20},tags:['#와인바','#데이트','#광주야경'],menus:[{name:'하우스 레드와인',price:'9,000원/잔',emoji:'🍷',desc:'소믈리에가 선정한 데일리 레드',best:true},{name:'샤퀴테리 플레이트',price:'22,000원',emoji:'🧀',desc:'치즈+살라미+올리브 모듬'},{name:'트러플 감자튀김',price:'12,000원',emoji:'🍟',desc:'트러플 오일 향 가득한 감자튀김'}],description:'광주 유일의 내추럴 와인 바. 국내외 소규모 와이너리 와인 50종 이상 보유.'},
+  {id:13,name:'진짜 냉면집',category:'한식',emoji:'🍜',type:'best',lat:37.4318,lng:127.2535,address:'경기도 광주시 경안로 201',hours:'11:00~21:00 (월 휴무)',phone:'031-345-7890',ratings:{naver:4.8,google:4.7,blog:278,instagram:5100},avgRating:4.75,distance:'310m',wait:{current:20,status:'mid',percent:60},tags:['#냉면','#평양냉면','#여름맛집'],menus:[{name:'물냉면',price:'12,000원',emoji:'🍜',desc:'맑고 시원한 육수의 평양식',best:true},{name:'비빔냉면',price:'12,000원',emoji:'🌶️',desc:'매콤달콤 양념장 비빔냉면'},{name:'왕만두',price:'8,000원',emoji:'🥟',desc:'직접 빚은 손만두 5개'}],description:'3대째 이어온 냉면 전문점. 매일 아침 직접 뽑는 면발과 24시간 우린 육수가 자랑.'},
+  {id:14,name:'스타벅스 광주경안점',category:'카페',emoji:'☕',type:'good',lat:37.4275,lng:127.2578,address:'경기도 광주시 경안로 88',hours:'07:00~22:00',phone:'1522-3232',ratings:{naver:4.3,google:4.2,blog:34,instagram:890},avgRating:4.25,distance:'170m',wait:{current:10,status:'mid',percent:45},tags:['#스타벅스','#카페','#공부카페'],menus:[{name:'아이스 아메리카노',price:'5,500원',emoji:'☕',desc:'리저브 원두 선택 가능',best:true},{name:'카페 라떼',price:'6,500원',emoji:'🥛',desc:'부드러운 스팀밀크 라떼'},{name:'케이크',price:'7,500원~',emoji:'🎂',desc:'시즌 한정 케이크 다양'}],description:'광주 경안동 위치, 넓은 좌석과 쾌적한 환경. 공부나 미팅하기 좋은 분위기.'},
+  {id:15,name:'오향 짬뽕',category:'중식',emoji:'🍜',type:'hot',lat:37.4292,lng:127.2505,address:'경기도 광주시 광주대로 78',hours:'11:00~22:00',phone:'031-456-8901',ratings:{naver:4.6,google:4.4,blog:201,instagram:3600},avgRating:4.5,distance:'230m',wait:{current:16,status:'mid',percent:55},tags:['#짬뽕','#중화요리','#광주중식'],menus:[{name:'오향짬뽕',price:'11,000원',emoji:'🍜',desc:'5가지 향신료의 깊은 맛',best:true},{name:'짜장면',price:'8,000원',emoji:'🍝',desc:'춘장 직접 볶은 정통 짜장'},{name:'깐풍기',price:'22,000원',emoji:'🍗',desc:'바삭하고 매콤달콤 깐풍기'}],description:'30년 노포 중화요리 전문점. 직접 만든 오향 소스가 들어간 짬뽕은 이 집만의 특색.'},
+  {id:16,name:'광주 막국수',category:'한식',emoji:'🍜',type:'good',lat:37.4263,lng:127.2520,address:'경기도 광주시 송정로 45',hours:'10:30~20:00 (수 휴무)',phone:'031-567-9012',ratings:{naver:4.5,google:4.4,blog:167,instagram:2400},avgRating:4.45,distance:'195m',wait:{current:8,status:'low',percent:30},tags:['#막국수','#메밀','#담백'],menus:[{name:'물막국수',price:'10,000원',emoji:'🍜',desc:'시원한 동치미 육수 막국수',best:true},{name:'비빔막국수',price:'10,000원',emoji:'🌶️',desc:'매콤한 양념의 비빔막국수'},{name:'수육',price:'20,000원',emoji:'🥩',desc:'삶은 돼지 수육 한 접시'}],description:'강원도에서 직접 공수한 메밀로 뽑는 막국수. 담백하고 건강한 맛.'},
+  {id:17,name:'오코노미야키 오사카',category:'일식',emoji:'🥞',type:'new',lat:37.4305,lng:127.2596,address:'경기도 광주시 탄벌로 156',hours:'12:00~21:30 (화 휴무)',phone:'031-678-0123',ratings:{naver:4.6,google:4.5,blog:88,instagram:3900},avgRating:4.55,distance:'380m',wait:{current:11,status:'mid',percent:40},tags:['#오코노미야키','#일본음식','#이색맛집'],menus:[{name:'오코노미야키',price:'13,000원',emoji:'🥞',desc:'오사카식 두꺼운 오코노미야키',best:true},{name:'모던야끼',price:'14,000원',emoji:'🥞',desc:'면이 들어간 히로시마식'},{name:'야끼소바',price:'11,000원',emoji:'🍝',desc:'철판에 볶아내는 야끼소바'}],description:'오사카에서 수학한 요리사가 운영. 직접 만든 오코노미야키 소스와 마요네즈가 핵심.'},
+  {id:18,name:'커피 로스터스',category:'카페',emoji:'☕',type:'best',lat:37.4248,lng:127.2558,address:'경기도 광주시 중앙로 234',hours:'09:00~21:00',phone:'031-789-1234',ratings:{naver:4.8,google:4.8,blog:112,instagram:9200},avgRating:4.8,distance:'520m',wait:{current:5,status:'low',percent:18},tags:['#스페셜티커피','#핸드드립','#커피맛집'],menus:[{name:'에티오피아 핸드드립',price:'9,000원',emoji:'☕',desc:'과일향 풍부한 에티오피아 예가체프',best:true},{name:'콜드브루',price:'7,500원',emoji:'🧊',desc:'48시간 저온 추출 콜드브루'},{name:'카눌레',price:'4,000원',emoji:'🍮',desc:'겉바속촉 프렌치 카눌레'}],description:'SCA 자격증 보유 바리스타가 직접 로스팅. 스페셜티 원두만 취급하는 광주 최고의 커피 전문점.'},
+  {id:19,name:'소바 타케다',category:'일식',emoji:'🍜',type:'good',lat:37.4330,lng:127.2570,address:'경기도 광주시 경안로 167',hours:'11:30~15:00, 17:00~21:00 (월 휴무)',phone:'031-890-2345',ratings:{naver:4.7,google:4.6,blog:145,instagram:4100},avgRating:4.65,distance:'440m',wait:{current:9,status:'low',percent:28},tags:['#소바','#메밀소바','#일식'],menus:[{name:'자루소바',price:'13,000원',emoji:'🍜',desc:'담백한 메밀 소바 + 쓰유',best:true},{name:'온소바',price:'13,000원',emoji:'🍜',desc:'따뜻한 국물 소바'},{name:'텐동',price:'15,000원',emoji:'🦐',desc:'바삭한 새우튀김 덮밥'}],description:'일본 교토에서 소바 수업 후 귀국한 오너 셰프가 운영. 제철 메밀을 직접 제분해 사용.'},
+  {id:20,name:'광주 삼겹살 명가',category:'한식',emoji:'🥓',type:'hot',lat:37.4244,lng:127.2540,address:'경기도 광주시 송정로 90',hours:'16:00~24:00',phone:'031-901-3456',ratings:{naver:4.5,google:4.4,blog:223,instagram:4800},avgRating:4.45,distance:'360m',wait:{current:25,status:'high',percent:75},tags:['#삼겹살','#고기집','#저녁'],menus:[{name:'두꺼운 삼겹살',price:'16,000원/200g',emoji:'🥓',desc:'두께 1.5cm 숯불 삼겹살',best:true},{name:'목살',price:'16,000원/200g',emoji:'🥩',desc:'쫄깃한 목살 구이'},{name:'냉면',price:'6,000원',emoji:'🍜',desc:'마무리 물냉면'}],description:'숯불에 구워 먹는 두꺼운 삼겹살이 시그니처. 직접 담근 깍두기와 함께 먹어야 제맛.'}
 ];
 
 const EMOJI_OPTIONS = ['🍜','🍣','🌶️','☕','🥟','🥐','🍔','🍕','🥩','🍝','🍛','🍰'];
@@ -339,6 +353,8 @@ let currentSort = 'rating';
 let editId = null;
 let selectedEmoji = '🍜';
 let myRating = 0;
+let kakaoPlaces = [];
+let ps = null;
 
 // ===== INIT =====
 document.addEventListener('DOMContentLoaded', () => {
@@ -360,11 +376,14 @@ function initMap() {
       center: new kakao.maps.LatLng(37.4292, 127.2550),
       level: 8
     });
+    ps = new kakao.maps.services.Places();
     addMarkers(RESTAURANTS);
     renderMyMarkers();
-    // 지도 이동/줌 시 사이드바 업데이트
+    searchNearbyRestaurants();
+    // 지도 이동/줌 시 사이드바 업데이트 + 주변 검색
     kakao.maps.event.addListener(map, 'idle', () => {
       updateSidebarByMap();
+      searchNearbyRestaurants();
     });
   } catch(e) {
     document.getElementById('kakaoMap').innerHTML = '<div style="display:flex;align-items:center;justify-content:center;height:100%;color:var(--text3);flex-direction:column;gap:8px;padding:20px;text-align:center"><div style="font-size:48px">🗺️</div><div style="font-size:16px;font-weight:700">카카오맵 API 키를 설정해주세요</div><div style="font-size:12px">index.html 상단의 YOUR_KAKAO_KEY를 발급받은 키로 교체하세요</div></div>';
@@ -439,11 +458,79 @@ function renderMyMarkers() {
   // My restaurants don't have coords typically, skip map markers for them
 }
 
+// ===== KAKAO LOCAL API =====
+function getAllData() {
+  return [...RESTAURANTS, ...kakaoPlaces];
+}
+
+function findById(id) {
+  return RESTAURANTS.find(r => r.id == id) || kakaoPlaces.find(r => r.id == id);
+}
+
+function searchNearbyRestaurants() {
+  if (!ps || !map) return;
+  kakaoPlaces = [];
+  let remaining = 2;
+  const center = map.getCenter();
+  const opts = { location: center, radius: 3000, sort: kakao.maps.services.SortBy.DISTANCE };
+
+  function onSearch(data, status) {
+    if (status === kakao.maps.services.Status.OK) {
+      data.forEach(place => {
+        if (!RESTAURANTS.find(r => r.name === place.place_name)) {
+          kakaoPlaces.push(convertKakaoPlace(place));
+        }
+      });
+    }
+    remaining--;
+    if (remaining === 0) {
+      addMarkers(getAllData());
+      updateSidebarByMap();
+    }
+  }
+
+  ps.categorySearch('FD6', onSearch, opts);
+  ps.categorySearch('CE7', onSearch, opts);
+}
+
+function convertKakaoPlace(place) {
+  const catName = place.category_name || '';
+  let cat = '한식';
+  if (catName.includes('카페') || catName.includes('커피')) cat = '카페';
+  else if (catName.includes('일식') || catName.includes('스시') || catName.includes('라멘') || catName.includes('초밥')) cat = '일식';
+  else if (catName.includes('중식') || catName.includes('중국')) cat = '중식';
+  const emojiMap = { 한식:'🍜', 일식:'🍣', 중식:'🥟', 카페:'☕' };
+  const dist = place.distance
+    ? (place.distance < 1000 ? place.distance + 'm' : (place.distance / 1000).toFixed(1) + 'km')
+    : '-';
+  const subcat = catName.split(' > ').pop();
+  return {
+    id: 'k_' + place.id,
+    name: place.place_name,
+    category: cat,
+    emoji: emojiMap[cat] || '🍽️',
+    type: 'kakao',
+    lat: parseFloat(place.y),
+    lng: parseFloat(place.x),
+    address: place.road_address_name || place.address_name,
+    phone: place.phone || '-',
+    hours: '-',
+    distance: dist,
+    kakaoUrl: place.place_url,
+    ratings: { naver: '-', google: '-', blog: 0, instagram: 0 },
+    avgRating: 0,
+    wait: { current: 0, status: 'low', percent: 0 },
+    tags: subcat ? ['#' + subcat] : [],
+    menus: [],
+    description: catName
+  };
+}
+
 function filterMap(cat, btn) {
   currentFilter = cat;
   document.querySelectorAll('.filter-chip').forEach(c => c.classList.remove('active'));
   btn.classList.add('active');
-  addMarkers(RESTAURANTS);
+  addMarkers(getAllData());
   renderSidebar();
 }
 
@@ -476,30 +563,32 @@ function formatDistance(meters) {
 function updateSidebarByMap() {
   if (!map) return;
   const bounds = map.getBounds();
-  let data = RESTAURANTS.filter(r => {
+  let data = getAllData().filter(r => {
     const pos = new kakao.maps.LatLng(r.lat, r.lng);
     return bounds.contain(pos);
   });
   if (currentFilter !== '전체' && currentFilter !== '내맛집') data = data.filter(r => r.category === currentFilter);
-  // 거리순 정렬
   data.sort((a,b) => getDistanceFromCenter(a) - getDistanceFromCenter(b));
   const sb = document.getElementById('sidebar');
   sb.innerHTML = `<div class="sidebar-title">주변 맛집 <span>${data.length}개</span></div>` +
     (data.length === 0 ? '<div style="text-align:center;color:var(--text3);padding:40px;font-size:13px">이 지역에 등록된 맛집이 없어요<br>지도를 이동해보세요 🗺️</div>' :
     data.map(r => {
       const dist = formatDistance(getDistanceFromCenter(r));
+      const badge = r.type === 'kakao'
+        ? `<div class="wait-badge low" style="font-size:10px;padding:3px 7px">카카오</div>`
+        : `<div class="wait-badge ${r.wait.status}"><span class="live-dot"></span>${r.wait.current}분</div>`;
       return `
-      <div class="sidebar-item" onclick="panTo(${r.lat},${r.lng});openModal(RESTAURANTS.find(x=>x.id===${r.id}))">
+      <div class="sidebar-item" onclick="panTo(${r.lat},${r.lng});openModal(findById('${r.id}'))">
         <div class="sidebar-emoji" style="background:${CAT_COLORS[r.category]||'#ff4b4b'}22">${r.emoji}</div>
         <div class="sidebar-info">
           <h4>${r.name}</h4>
           <div class="meta">
-            <span class="rating">★ ${r.avgRating}</span>
+            <span class="rating">★ ${r.avgRating || '-'}</span>
             <span>${dist}</span>
             <span>${r.category}</span>
           </div>
         </div>
-        <div class="wait-badge ${r.wait.status}"><span class="live-dot"></span>${r.wait.current}분</div>
+        ${badge}
       </div>
     `}).join(''));
 }
@@ -510,15 +599,25 @@ function renderSidebar() {
 
 // ===== LIST TAB =====
 function renderCardGrid(data) {
-  data = data || [...RESTAURANTS];
+  data = data || getAllData();
   switch(currentSort) {
     case 'rating': data.sort((a,b) => b.avgRating - a.avgRating); break;
     case 'wait': data.sort((a,b) => a.wait.current - b.wait.current); break;
     case 'distance': data.sort((a,b) => parseInt(a.distance) - parseInt(b.distance)); break;
-    case 'new': data.sort((a,b) => b.id - a.id); break;
+    case 'new': data.sort((a,b) => (String(b.id) > String(a.id) ? 1 : -1)); break;
   }
-  document.getElementById('cardGrid').innerHTML = data.map(r => `
-    <div class="card" onclick="openModal(RESTAURANTS.find(x=>x.id===${r.id}))">
+  document.getElementById('cardGrid').innerHTML = data.map(r => {
+    const badge = r.type === 'kakao'
+      ? `<div class="wait-badge low" style="font-size:10px;padding:3px 7px">카카오</div>`
+      : `<div class="wait-badge ${r.wait.status}"><span class="live-dot"></span>${r.wait.current}분</div>`;
+    const ratings = r.type === 'kakao'
+      ? `<span class="pill" style="background:var(--kakao,#fee500);color:#000">🗺️ 카카오맵 데이터</span>`
+      : `<span class="pill naver">🟢 네이버 ${r.ratings.naver}</span>
+         <span class="pill google">🔵 구글 ${r.ratings.google}</span>
+         <span class="pill blog">📝 블로그 ${r.ratings.blog}건</span>
+         <span class="pill insta">📸 ${r.ratings.instagram.toLocaleString()}</span>`;
+    return `
+    <div class="card" onclick="openModal(findById('${r.id}'))">
       <div class="card-top">
         <div class="card-emoji ${r.category}">${r.emoji}</div>
         <div class="card-main">
@@ -526,22 +625,17 @@ function renderCardGrid(data) {
           <div class="card-sub">
             <span>${r.category}</span>
             <span class="dist">${r.distance}</span>
-            <span>${r.hours.split('~')[0]}~</span>
+            <span>${r.hours !== '-' ? r.hours.split('~')[0] + '~' : ''}</span>
           </div>
         </div>
-        <div class="wait-badge ${r.wait.status}"><span class="live-dot"></span>${r.wait.current}분</div>
+        ${badge}
       </div>
-      <div class="card-ratings">
-        <span class="pill naver">🟢 네이버 ${r.ratings.naver}</span>
-        <span class="pill google">🔵 구글 ${r.ratings.google}</span>
-        <span class="pill blog">📝 블로그 ${r.ratings.blog}</span>
-        <span class="pill insta">📸 ${r.ratings.instagram.toLocaleString()}</span>
-      </div>
+      <div class="card-ratings">${ratings}</div>
       <div class="card-bottom">
         <div class="card-tags">${r.tags.join(' ')}</div>
       </div>
     </div>
-  `).join('');
+  `}).join('');
 }
 
 function sortList(sort, btn) {
@@ -552,8 +646,39 @@ function sortList(sort, btn) {
 }
 
 // ===== MODAL =====
+function openKakaoModal(r) {
+  const saved = getMyRestaurants().find(m => m.name === r.name);
+  document.getElementById('modalContent').innerHTML = `
+    <div class="modal-hero ${r.category}">
+      <button class="modal-close" onclick="closeModal()">✕</button>
+      <div class="big-emoji">${r.emoji}</div>
+      <h2>${r.name}</h2>
+      <div class="cat-label">${r.category} · ${r.distance}</div>
+    </div>
+    <div class="modal-body">
+      <div class="section-title">📌 기본정보</div>
+      <div class="info-list">
+        ${r.phone && r.phone !== '-' ? `<div class="info-row"><span class="info-icon">📞</span><span class="info-val">${r.phone}</span></div>` : ''}
+        <div class="info-row"><span class="info-icon">📍</span><span class="info-val">${r.address}</span></div>
+        <div class="info-row"><span class="info-icon">🏷️</span><span class="info-val">${r.description}</span></div>
+      </div>
+      <div class="modal-actions">
+        ${r.kakaoUrl ? `<button class="action-btn" onclick="window.open('${r.kakaoUrl}','_blank')"><span class="action-icon">🗺️</span>카카오맵</button>` : ''}
+        <button class="action-btn" onclick="window.open('https://map.kakao.com/link/to/${encodeURIComponent(r.name)},${r.lat},${r.lng}')"><span class="action-icon">🧭</span>길찾기</button>
+        ${r.phone && r.phone !== '-' ? `<button class="action-btn" onclick="location.href='tel:${r.phone}'"><span class="action-icon">📞</span>전화</button>` : ''}
+        <button class="action-btn" onclick="toggleSave('${r.name}','${r.emoji}','${r.category}')"><span class="action-icon">${saved ? '💛' : '🤍'}</span>${saved ? '저장됨' : '저장'}</button>
+      </div>
+      <div style="margin-top:16px;padding:14px;background:var(--card);border-radius:12px;border:1px solid var(--border);font-size:12px;color:var(--text3);text-align:center">
+        🗺️ 카카오맵 실시간 데이터입니다. 상세 평점·메뉴는 카카오맵에서 확인하세요.
+      </div>
+    </div>
+  `;
+  document.getElementById('modalOverlay').classList.add('show');
+}
+
 function openModal(r) {
   if (!r) return;
+  if (r.type === 'kakao') { openKakaoModal(r); return; }
   const saved = getMyRestaurants().find(m => m.name === r.name);
   const hourlyData = generateHourly();
   document.getElementById('modalContent').innerHTML = `
@@ -646,7 +771,7 @@ function handleSearch(q) {
   q = q.trim().toLowerCase();
   if (!q) { switchTab('list'); renderCardGrid(); return; }
   switchTab('list');
-  const filtered = RESTAURANTS.filter(r =>
+  const filtered = getAllData().filter(r =>
     r.name.toLowerCase().includes(q) ||
     r.category.toLowerCase().includes(q) ||
     r.tags.some(t => t.toLowerCase().includes(q))

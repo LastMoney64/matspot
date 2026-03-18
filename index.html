@@ -693,26 +693,31 @@ function openModal(r) {
       </div>
 
       <div class="section-title">🍽️ 추천 메뉴</div>
+      <div id="place-menus">
       ${r.menus && r.menus.length > 0 ? r.menus.map(m => `
         <div class="menu-item">
-          <div class="m-emoji">${m.emoji}</div>
+          <div class="m-emoji">${m.emoji || '🍽️'}</div>
           <div class="m-info">
             <div class="m-name">${m.name} ${m.best?'<span class="best-tag">BEST</span>':''}</div>
-            <div class="m-desc">${m.desc}</div>
+            <div class="m-desc">${m.desc || ''}</div>
           </div>
           <div class="m-price">${m.price}</div>
         </div>
-      `).join('') : `
-        <div style="padding:16px;text-align:center;color:var(--text3);font-size:13px;background:var(--card);border-radius:12px;border:1px solid var(--border)">
-          🗺️ 메뉴 정보는 카카오맵에서 확인하세요
-          ${r.kakaoUrl ? `<br><a href="${r.kakaoUrl}" target="_blank" style="color:var(--accent);margin-top:8px;display:inline-block">카카오맵에서 보기 →</a>` : ''}
+      `).join('') : r.type === 'kakao' ? `
+        <div style="padding:14px;text-align:center;color:var(--text3);font-size:13px;background:var(--card);border-radius:12px;border:1px solid var(--border)">
+          <span style="opacity:.5">메뉴 불러오는 중...</span>
+        </div>
+      ` : `
+        <div style="padding:14px;text-align:center;color:var(--text3);font-size:13px;background:var(--card);border-radius:12px;border:1px solid var(--border)">
+          🗺️ 메뉴 정보가 없습니다
         </div>
       `}
+      </div>
 
       <div style="margin-top:16px">
         <div class="section-title">📌 기본정보</div>
         <div class="info-list">
-          <div class="info-row"><span class="info-icon">🕐</span><span class="info-val">${r.hours || '영업시간 정보 없음'}</span></div>
+          <div class="info-row"><span class="info-icon">🕐</span><span class="info-val" id="place-hours">${r.type === 'kakao' ? '불러오는 중...' : (r.hours || '영업시간 정보 없음')}</span></div>
           <div class="info-row"><span class="info-icon">📞</span><span class="info-val">${r.phone || '-'}</span></div>
           <div class="info-row"><span class="info-icon">📍</span><span class="info-val">${r.address}</span></div>
         </div>
@@ -732,6 +737,52 @@ function openModal(r) {
     </div>
   `;
   document.getElementById('modalOverlay').classList.add('show');
+  if (r.type === 'kakao') fetchPlaceDetail(r.id.replace('k_', ''), r.kakaoUrl);
+}
+
+const placeDetailCache = {};
+
+async function fetchPlaceDetail(placeId, kakaoUrl) {
+  if (placeDetailCache[placeId]) {
+    applyPlaceDetail(placeDetailCache[placeId], kakaoUrl);
+    return;
+  }
+  try {
+    const res = await fetch(`/api/place?id=${placeId}`);
+    const data = await res.json();
+    placeDetailCache[placeId] = data;
+    applyPlaceDetail(data, kakaoUrl);
+  } catch(e) {
+    const hoursEl = document.getElementById('place-hours');
+    if (hoursEl) hoursEl.textContent = '영업시간 정보 없음';
+  }
+}
+
+function applyPlaceDetail(data, kakaoUrl) {
+  const hoursEl = document.getElementById('place-hours');
+  if (hoursEl) hoursEl.textContent = data.hours || '영업시간 정보 없음';
+
+  const menusEl = document.getElementById('place-menus');
+  if (!menusEl) return;
+
+  if (data.menus && data.menus.length > 0) {
+    menusEl.innerHTML = data.menus.map(m => `
+      <div class="menu-item">
+        <div class="m-emoji">${m.img ? `<img src="${m.img}" style="width:40px;height:40px;object-fit:cover;border-radius:8px">` : '🍽️'}</div>
+        <div class="m-info">
+          <div class="m-name">${m.name}</div>
+          ${m.desc ? `<div class="m-desc">${m.desc}</div>` : ''}
+        </div>
+        <div class="m-price">${m.price}</div>
+      </div>
+    `).join('');
+  } else {
+    menusEl.innerHTML = `
+      <div style="padding:14px;text-align:center;color:var(--text3);font-size:13px;background:var(--card);border-radius:12px;border:1px solid var(--border)">
+        🗺️ 메뉴 정보는 카카오맵에서 확인하세요
+        ${kakaoUrl ? `<br><a href="${kakaoUrl}" target="_blank" style="color:var(--accent);margin-top:8px;display:inline-block">카카오맵에서 보기 →</a>` : ''}
+      </div>`;
+  }
 }
 
 function closeModal() {

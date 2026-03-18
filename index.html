@@ -998,14 +998,15 @@ async function saveMyRestaurant() {
     saveToLS(list);
   } else {
     try {
-      console.log('[저장] Supabase insert 시도...');
       const result = isEdit
         ? await supa.from('user_restaurants').update(entry).eq('id', editId)
         : await supa.from('user_restaurants').insert({ ...entry, user_id: currentUser.id });
-      console.log('[저장] Supabase 결과:', result);
-      if (result.error) throw result.error;
+      if (result.error) {
+        alert('저장 실패!\n에러: ' + result.error.message + '\n코드: ' + result.error.code);
+        throw result.error;
+      }
+      alert('저장 성공! DB에 저장되었습니다 ✅');
       await loadMyRestaurants();
-      console.log('[저장] loadMyRestaurants 완료, 건수:', myRestaurantsList.length);
     } catch (e) {
       console.error('[저장] 에러:', e);
       toast('저장 실패: ' + (e.message || JSON.stringify(e)));

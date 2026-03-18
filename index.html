@@ -530,14 +530,73 @@ function renderMyMarkers() {
   if (!map) return;
   myMarkers.forEach(m => m.setMap(null));
   myMarkers = [];
+  const list = getMyRestaurants();
+  const mainNames = new Set([...RESTAURANTS, ...kakaoPlaces].map(r => r.name));
+  list.forEach(r => {
+    if (!r.address || mainNames.has(r.name)) return;
+    geocodeAddress(r.address, (lat, lng) => {
+      const content = document.createElement('div');
+      content.innerHTML = `<div style="width:40px;height:40px;background:#FFD166;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:20px;border:3px solid #fff;cursor:pointer;box-shadow:0 3px 10px rgba(0,0,0,.5)">${r.emoji}</div>`;
+      const marker = new kakao.maps.CustomOverlay({ position: new kakao.maps.LatLng(lat, lng), content: content, yAnchor: 1 });
+      marker.setMap(map);
+      content.addEventListener('click', () => openMyModal(r.id));
+      myMarkers.push(marker);
+      if (currentFilter === '내맛집') renderMyMapSidebar();
+    });
+  });
+}
+
+// ===== GEO CACHE =====
+const GEO_CACHE_KEY = 'matspot_geo';
+function getGeoCache() { try { return JSON.parse(localStorage.getItem(GEO_CACHE_KEY)) || {}; } catch { return {}; } }
+function getCachedCoords(addr) { return getGeoCache()[addr] || null; }
+function geocodeAddress(addr, cb) {
+  if (!addr) return;
+  const cached = getCachedCoords(addr);
+  if (cached) { cb(cached.lat, cached.lng); return; }
+  if (!window.kakao?.maps?.services) return;
+  const geocoder = new kakao.maps.services.Geocoder();
+  geocoder.addressSearch(addr, function(result, status) {
+    if (status !== kakao.maps.services.Status.OK) return;
+    const lat = parseFloat(result[0].y), lng = parseFloat(result[0].x);
+    const cache = getGeoCache(); cache[addr] = { lat, lng };
+    localStorage.setItem(GEO_CACHE_KEY, JSON.stringify(cache));
+    cb(lat, lng);
+  });
+}
+function geocodeAllMyRestaurants(cb) {
+  const list = getMyRestaurants().filter(r => r.address && !getCachedCoords(r.address));
+  let pending = list.length;
+  if (pending === 0) { if (cb) cb(); return; }
+  list.forEach(r => geocodeAddress(r.address, () => { if (--pending === 0 && cb) cb(); }));
+}
+function myRestaurantsToData() {
+  const cache = getGeoCache();
+  return getMyRestaurants()
+    .filter(r => r.address && cache[r.address])
+    .map(r => {
+      const { lat, lng } = cache[r.address];
+      return {
+        id: 'my_' + r.id, myId: r.id, name: r.name, emoji: r.emoji, category: r.category,
+        lat, lng, address: r.address, distance: '내 등록', avgRating: parseInt(r.rating) || 0,
+        ratings: { naver: '-', google: '-', blog: '-', instagram: 0 },
+        wait: { current: 0, status: 'low', percent: 0 },
+        hours: '-', phone: '', menus: [], tags: ['📌 내맛집'],
+        type: 'my', memo: r.memo, myStatus: r.status
+      };
+    });
 }
 
 // ===== KAKAO LOCAL API =====
 function getAllData() {
-  return [...RESTAURANTS, ...kakaoPlaces];
+  return [...RESTAURANTS, ...kakaoPlaces, ...myRestaurantsToData()];
 }
 
 function findById(id) {
+  if (String(id).startsWith('my_')) {
+    const myId = String(id).replace('my_', '');
+    return myRestaurantsToData().find(r => r.myId === myId);
+  }
   return RESTAURANTS.find(r => r.id == id) || kakaoPlaces.find(r => r.id == id);
 }
 
@@ -624,13 +683,12 @@ function filterMap(cat, btn) {
   btn.classList.add('active');
   if (cat === '내맛집') {
     const myNames = new Set(getMyRestaurants().map(r => r.name));
-    const myData = getAllData().filter(r => myNames.has(r.name));
+    const mainNames = new Set([...RESTAURANTS, ...kakaoPlaces].map(r => r.name));
+    const myMainData = [...RESTAURANTS, ...kakaoPlaces].filter(r => myNames.has(r.name));
     clearMarkers();
-    if (myData.length > 0) {
-      addMarkers(myData);
-      // 첫 번째 맛집으로 지도 이동
-      panTo(myData[0].lat, myData[0].lng);
-    }
+    if (myMainData.length > 0) { addMarkers(myMainData); panTo(myMainData[0].lat, myMainData[0].lng); }
+    geocodeAllMyRestaurants(() => { renderMyMarkers(); renderMyMapSidebar(); });
+    renderMyMarkers();
     renderMyMapSidebar();
   } else {
     addMarkers(getAllData());
@@ -773,7 +831,20 @@ function renderCardGrid(data) {
     case 'distance': data.sort((a,b) => parseInt(a.distance) - parseInt(b.distance)); break;
     case 'new': data.sort((a,b) => (String(b.id) > String(a.id) ? 1 : -1)); break;
   }
-  document.getElementById('cardGrid').innerHTML = data.map(r => `
+  document.getElementById('cardGrid').innerHTML = data.map(r => {
+    if (r.type === 'my') return `
+      <div class="my-card" onclick="openMyModal('${r.myId}')" style="border:1px solid var(--gold)33">
+        <div class="my-card-top">
+          <div class="my-card-emoji">${r.emoji}</div>
+          <div>
+            <div class="my-card-title">${r.name} <span class="status-badge ${r.myStatus}">${r.myStatus==='visited'?'방문완료':'가고싶어요'}</span></div>
+            <div class="my-card-sub">${r.category} · ${'★'.repeat(r.avgRating)}${'☆'.repeat(5-r.avgRating)} · ${r.address}</div>
+          </div>
+        </div>
+        ${r.memo ? `<div class="my-card-memo">💬 ${r.memo}</div>` : ''}
+        <div style="font-size:11px;color:var(--gold);margin-top:6px">📌 내가 등록한 맛집</div>
+      </div>`;
+    return `
     <div class="card" onclick="openModal(findById('${r.id}'))">
       <div class="card-top">
         <div class="card-emoji ${r.category}">${r.emoji}</div>
@@ -796,8 +867,8 @@ function renderCardGrid(data) {
       <div class="card-bottom">
         <div class="card-tags">${r.tags.join(' ')}</div>
       </div>
-    </div>
-  `).join('');
+    </div>`;
+  }).join('');
 }
 
 function sortList(sort, btn) {
@@ -845,6 +916,7 @@ function openMyModal(id) {
 // ===== MODAL =====
 function openModal(r) {
   if (!r) return;
+  if (r.type === 'my') { openMyModal(r.myId); return; }
   const saved = getMyRestaurants().find(m => m.name === r.name);
   const hourlyData = generateHourly();
   document.getElementById('modalContent').innerHTML = `
@@ -1140,6 +1212,12 @@ async function saveMyRestaurant() {
   resetForm();
   try { renderMyTab(); } catch(e) { console.error('[저장] renderMyTab 에러:', e); }
   toast(isEdit ? '수정 완료!' : '맛집이 등록되었어요! 🎉');
+  // 주소 지오코딩 후 지도/리스트 자동 반영
+  if (entry.address) {
+    geocodeAddress(entry.address, () => {
+      if (currentFilter === '내맛집') { renderMyMarkers(); renderMyMapSidebar(); }
+    });
+  }
 }
 
 function editMyRestaurant(id) {

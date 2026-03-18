@@ -358,10 +358,14 @@ function initMap() {
     const container = document.getElementById('kakaoMap');
     map = new kakao.maps.Map(container, {
       center: new kakao.maps.LatLng(37.4292, 127.2550),
-      level: 5
+      level: 8
     });
     addMarkers(RESTAURANTS);
     renderMyMarkers();
+    // 지도 이동/줌 시 사이드바 업데이트
+    kakao.maps.event.addListener(map, 'idle', () => {
+      updateSidebarByMap();
+    });
   } catch(e) {
     document.getElementById('kakaoMap').innerHTML = '<div style="display:flex;align-items:center;justify-content:center;height:100%;color:var(--text3);flex-direction:column;gap:8px;padding:20px;text-align:center"><div style="font-size:48px">🗺️</div><div style="font-size:16px;font-weight:700">카카오맵 API 키를 설정해주세요</div><div style="font-size:12px">index.html 상단의 YOUR_KAKAO_KEY를 발급받은 키로 교체하세요</div></div>';
   }
@@ -452,25 +456,56 @@ function panTo(lat, lng) {
 }
 
 // ===== SIDEBAR =====
-function renderSidebar() {
-  const sb = document.getElementById('sidebar');
-  let data = RESTAURANTS;
+function getDistanceFromCenter(r) {
+  if (!map) return 0;
+  const center = map.getCenter();
+  const lat1 = center.getLat(), lng1 = center.getLng();
+  const lat2 = r.lat, lng2 = r.lng;
+  const R = 6371000;
+  const dLat = (lat2-lat1)*Math.PI/180;
+  const dLng = (lng2-lng1)*Math.PI/180;
+  const a = Math.sin(dLat/2)**2 + Math.cos(lat1*Math.PI/180)*Math.cos(lat2*Math.PI/180)*Math.sin(dLng/2)**2;
+  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+}
+
+function formatDistance(meters) {
+  if (meters < 1000) return Math.round(meters) + 'm';
+  return (meters/1000).toFixed(1) + 'km';
+}
+
+function updateSidebarByMap() {
+  if (!map) return;
+  const bounds = map.getBounds();
+  let data = RESTAURANTS.filter(r => {
+    const pos = new kakao.maps.LatLng(r.lat, r.lng);
+    return bounds.contain(pos);
+  });
   if (currentFilter !== '전체' && currentFilter !== '내맛집') data = data.filter(r => r.category === currentFilter);
+  // 거리순 정렬
+  data.sort((a,b) => getDistanceFromCenter(a) - getDistanceFromCenter(b));
+  const sb = document.getElementById('sidebar');
   sb.innerHTML = `<div class="sidebar-title">주변 맛집 <span>${data.length}개</span></div>` +
-    data.map(r => `
+    (data.length === 0 ? '<div style="text-align:center;color:var(--text3);padding:40px;font-size:13px">이 지역에 등록된 맛집이 없어요<br>지도를 이동해보세요 🗺️</div>' :
+    data.map(r => {
+      const dist = formatDistance(getDistanceFromCenter(r));
+      return `
       <div class="sidebar-item" onclick="panTo(${r.lat},${r.lng});openModal(RESTAURANTS.find(x=>x.id===${r.id}))">
         <div class="sidebar-emoji" style="background:${CAT_COLORS[r.category]||'#ff4b4b'}22">${r.emoji}</div>
         <div class="sidebar-info">
           <h4>${r.name}</h4>
           <div class="meta">
             <span class="rating">★ ${r.avgRating}</span>
-            <span>${r.distance}</span>
+            <span>${dist}</span>
             <span>${r.category}</span>
           </div>
         </div>
         <div class="wait-badge ${r.wait.status}"><span class="live-dot"></span>${r.wait.current}분</div>
       </div>
-    `).join('');
+    `}).join(''));
+}
+
+function renderSidebar() {
+  updateSidebarByMap();
 }
 
 // ===== LIST TAB =====

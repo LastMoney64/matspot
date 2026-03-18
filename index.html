@@ -1,0 +1,805 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>맛Spot - 나만의 맛집 지도</title>
+<!-- 카카오맵 API: YOUR_KAKAO_KEY 부분을 발급받은 JavaScript 키로 교체하세요 -->
+<script type="text/javascript" src="https://dapi.kakao.com/v2/maps/sdk.js?appkey=2ba4283f82cd69542ba169e428b5695f&libraries=services"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Black+Han+Sans&family=Noto+Sans+KR:wght@300;400;500;700;900&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --bg:#0d0d0d;--surface:#181818;--surface2:#222222;--border:#2a2a2a;
+  --accent:#ff4b4b;--accent2:#ff8c42;--gold:#ffd166;
+  --text:#f0ede8;--text2:#9a9590;--text3:#5a5550;
+  --green:#06d6a0;--blue:#4ecdc4;
+  --radius:12px;--radius-sm:8px;
+}
+html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--text);font-family:'Noto Sans KR',sans-serif;font-size:14px;line-height:1.5}
+::-webkit-scrollbar{width:4px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px}
+
+/* ===== HEADER ===== */
+.header{display:flex;align-items:center;gap:12px;padding:10px 20px;background:var(--surface);border-bottom:1px solid var(--border);height:56px;z-index:100}
+.logo{font-family:'Black Han Sans',sans-serif;font-size:26px;cursor:pointer;white-space:nowrap;user-select:none}
+.logo .mat{background:linear-gradient(135deg,var(--accent),var(--accent2));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.logo .spot{color:var(--gold)}
+.search-wrap{flex:1;max-width:420px;position:relative}
+.search-wrap input{width:100%;padding:8px 14px 8px 36px;background:var(--surface2);border:1px solid var(--border);border-radius:20px;color:var(--text);font-size:13px;outline:none;transition:border .2s}
+.search-wrap input:focus{border-color:var(--accent)}
+.search-wrap .icon{position:absolute;left:12px;top:50%;transform:translateY(-50%);color:var(--text3);font-size:14px;pointer-events:none}
+.header-actions{display:flex;gap:6px;margin-left:auto}
+.icon-btn{width:36px;height:36px;border-radius:50%;border:1px solid var(--border);background:var(--surface2);color:var(--text2);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:16px;transition:all .2s}
+.icon-btn:hover{border-color:var(--accent);color:var(--accent)}
+
+/* ===== TABS ===== */
+.tab-bar{display:flex;background:var(--surface);border-bottom:1px solid var(--border);padding:0 20px}
+.tab-btn{padding:10px 20px;background:none;border:none;color:var(--text3);cursor:pointer;font-size:13px;font-weight:500;position:relative;transition:color .2s;font-family:inherit}
+.tab-btn.active{color:var(--text)}
+.tab-btn.active::after{content:'';position:absolute;bottom:0;left:20%;right:20%;height:2px;background:var(--accent);border-radius:1px}
+.tab-btn:hover{color:var(--text2)}
+
+/* ===== MAIN ===== */
+.main{flex:1;overflow:hidden;display:flex;flex-direction:column}
+.app-wrap{display:flex;flex-direction:column;height:100vh}
+.tab-content{display:none;flex:1;overflow:hidden}
+.tab-content.active{display:flex;flex-direction:column}
+
+/* ===== MAP TAB ===== */
+.map-tab{flex-direction:row !important}
+.map-container{flex:1;position:relative}
+#kakaoMap{width:100%;height:100%}
+.map-filters{position:absolute;top:12px;left:12px;display:flex;gap:6px;z-index:10;flex-wrap:wrap}
+.filter-chip{padding:6px 14px;border-radius:20px;border:1px solid var(--border);background:rgba(24,24,24,.9);color:var(--text2);cursor:pointer;font-size:12px;font-weight:500;backdrop-filter:blur(8px);transition:all .2s;font-family:inherit;white-space:nowrap}
+.filter-chip.active{background:var(--accent);color:#fff;border-color:var(--accent)}
+.filter-chip[data-cat="일식"].active{background:var(--blue);border-color:var(--blue)}
+.filter-chip[data-cat="중식"].active{background:var(--accent2);border-color:var(--accent2)}
+.filter-chip[data-cat="카페"].active{background:var(--green);border-color:var(--green)}
+.filter-chip[data-cat="내맛집"].active{background:var(--gold);border-color:var(--gold);color:#000}
+
+.sidebar{width:340px;background:var(--surface);border-left:1px solid var(--border);overflow-y:auto;padding:12px}
+.sidebar-title{font-size:14px;font-weight:700;margin-bottom:10px;padding:0 4px;display:flex;align-items:center;justify-content:space-between}
+.sidebar-title span{color:var(--text3);font-size:12px;font-weight:400}
+.sidebar-item{display:flex;gap:10px;padding:10px;border-radius:var(--radius-sm);cursor:pointer;transition:background .2s;border:1px solid transparent}
+.sidebar-item:hover{background:var(--surface2);border-color:var(--border)}
+.sidebar-emoji{width:42px;height:42px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0}
+.sidebar-info{flex:1;min-width:0}
+.sidebar-info h4{font-size:13px;font-weight:600;margin-bottom:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.sidebar-info .meta{font-size:11px;color:var(--text3);display:flex;gap:8px;align-items:center}
+.sidebar-info .meta .rating{color:var(--gold)}
+.wait-badge{font-size:10px;padding:2px 8px;border-radius:10px;font-weight:600;white-space:nowrap;display:flex;align-items:center;gap:4px;align-self:center}
+.wait-badge.low{background:rgba(6,214,160,.15);color:var(--green)}
+.wait-badge.mid{background:rgba(255,209,102,.15);color:var(--gold)}
+.wait-badge.high{background:rgba(255,75,75,.15);color:var(--accent)}
+.live-dot{width:6px;height:6px;border-radius:50%;display:inline-block;animation:pulse 1.5s infinite}
+.wait-badge.low .live-dot{background:var(--green)}
+.wait-badge.mid .live-dot{background:var(--gold)}
+.wait-badge.high .live-dot{background:var(--accent)}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
+
+/* ===== LIST TAB ===== */
+.list-tab{overflow:hidden}
+.list-toolbar{display:flex;gap:6px;padding:12px 20px;flex-wrap:wrap;align-items:center}
+.sort-btn{padding:6px 12px;border-radius:16px;border:1px solid var(--border);background:var(--surface2);color:var(--text2);cursor:pointer;font-size:12px;transition:all .2s;font-family:inherit}
+.sort-btn.active{background:var(--accent);color:#fff;border-color:var(--accent)}
+.card-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:14px;padding:0 20px 20px;overflow-y:auto;flex:1}
+.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:16px;cursor:pointer;transition:all .25s}
+.card:hover{transform:translateY(-3px);border-color:var(--accent);box-shadow:0 0 20px rgba(255,75,75,.08)}
+.card-top{display:flex;gap:12px;align-items:flex-start}
+.card-emoji{width:52px;height:52px;border-radius:var(--radius);display:flex;align-items:center;justify-content:center;font-size:28px;flex-shrink:0}
+.card-emoji.한식{background:rgba(255,75,75,.12)}
+.card-emoji.일식{background:rgba(78,205,196,.12)}
+.card-emoji.중식{background:rgba(255,140,66,.12)}
+.card-emoji.카페{background:rgba(6,214,160,.12)}
+.card-main{flex:1;min-width:0}
+.card-main h3{font-size:15px;font-weight:700;margin-bottom:2px}
+.card-main .card-sub{font-size:11px;color:var(--text3);display:flex;gap:8px;align-items:center}
+.card-main .card-sub .dist{color:var(--blue)}
+.card-ratings{display:flex;gap:6px;margin-top:10px;flex-wrap:wrap}
+.pill{font-size:10px;padding:3px 8px;border-radius:10px;font-weight:500;display:flex;align-items:center;gap:3px}
+.pill.naver{background:rgba(6,214,160,.12);color:var(--green)}
+.pill.google{background:rgba(78,205,196,.12);color:var(--blue)}
+.pill.blog{background:rgba(154,149,144,.12);color:var(--text2)}
+.pill.insta{background:rgba(255,140,66,.12);color:var(--accent2)}
+.card-bottom{display:flex;justify-content:space-between;align-items:center;margin-top:12px;padding-top:10px;border-top:1px solid var(--border)}
+.card-tags{font-size:11px;color:var(--text3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;flex:1}
+
+/* ===== MY TAB ===== */
+.my-tab{overflow-y:auto;padding:20px}
+.my-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:20px}
+.stat-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:16px;text-align:center}
+.stat-card .num{font-size:28px;font-weight:900;background:linear-gradient(135deg,var(--accent),var(--accent2));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.stat-card .label{font-size:11px;color:var(--text3);margin-top:2px}
+.my-form{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:20px;margin-bottom:20px}
+.my-form h3{font-size:15px;font-weight:700;margin-bottom:14px;display:flex;align-items:center;gap:6px}
+.form-row{display:flex;gap:10px;margin-bottom:10px;flex-wrap:wrap}
+.form-row label{font-size:12px;color:var(--text2);margin-bottom:4px;display:block}
+.form-row input,.form-row select,.form-row textarea{width:100%;padding:8px 12px;background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius-sm);color:var(--text);font-size:13px;font-family:inherit;outline:none;transition:border .2s}
+.form-row input:focus,.form-row select:focus,.form-row textarea:focus{border-color:var(--accent)}
+.form-row .field{flex:1;min-width:140px}
+.emoji-picker{display:flex;gap:6px;flex-wrap:wrap}
+.emoji-opt{width:36px;height:36px;border-radius:8px;border:2px solid var(--border);background:var(--surface2);font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .2s}
+.emoji-opt.selected{border-color:var(--accent);background:rgba(255,75,75,.1)}
+.emoji-opt:hover{border-color:var(--accent)}
+.star-input{display:flex;gap:4px}
+.star-input span{font-size:22px;cursor:pointer;color:var(--border);transition:color .15s}
+.star-input span.on{color:var(--gold)}
+.btn-primary{padding:10px 24px;border-radius:var(--radius-sm);border:none;background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff;font-weight:700;font-size:13px;cursor:pointer;font-family:inherit;transition:opacity .2s}
+.btn-primary:hover{opacity:.85}
+.btn-secondary{padding:10px 24px;border-radius:var(--radius-sm);border:1px solid var(--border);background:var(--surface2);color:var(--text2);font-weight:500;font-size:13px;cursor:pointer;font-family:inherit;transition:all .2s}
+.btn-secondary:hover{border-color:var(--accent);color:var(--text)}
+.my-list-item{display:flex;gap:12px;align-items:center;padding:12px;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-sm);margin-bottom:8px;transition:border .2s}
+.my-list-item:hover{border-color:var(--accent)}
+.my-list-item .emoji{font-size:24px;width:40px;text-align:center}
+.my-list-item .info{flex:1;min-width:0}
+.my-list-item .info h4{font-size:14px;font-weight:600}
+.my-list-item .info .sub{font-size:11px;color:var(--text3)}
+.my-list-item .info .memo{font-size:12px;color:var(--text2);margin-top:2px}
+.status-badge{font-size:10px;padding:3px 8px;border-radius:10px;font-weight:600}
+.status-badge.visited{background:rgba(6,214,160,.15);color:var(--green)}
+.status-badge.wishlist{background:rgba(255,209,102,.15);color:var(--gold)}
+.my-list-actions{display:flex;gap:6px}
+.my-list-actions button{width:30px;height:30px;border-radius:6px;border:1px solid var(--border);background:var(--surface2);color:var(--text3);cursor:pointer;font-size:13px;transition:all .2s}
+.my-list-actions button:hover{border-color:var(--accent);color:var(--accent)}
+
+/* ===== MODAL ===== */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:1000;display:none;align-items:center;justify-content:center;backdrop-filter:blur(4px)}
+.modal-overlay.show{display:flex}
+.modal{background:var(--surface);border:1px solid var(--border);border-radius:16px;width:90%;max-width:520px;max-height:85vh;overflow-y:auto;animation:modalIn .25s ease}
+@keyframes modalIn{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
+.modal-hero{padding:28px 24px;text-align:center;position:relative;overflow:hidden;border-radius:16px 16px 0 0}
+.modal-hero::before{content:'';position:absolute;inset:0;opacity:.15}
+.modal-hero.한식::before{background:linear-gradient(135deg,var(--accent),var(--accent2))}
+.modal-hero.일식::before{background:linear-gradient(135deg,var(--blue),#118ab2)}
+.modal-hero.중식::before{background:linear-gradient(135deg,var(--accent2),var(--gold))}
+.modal-hero.카페::before{background:linear-gradient(135deg,var(--green),var(--blue))}
+.modal-hero .big-emoji{font-size:56px;position:relative}
+.modal-hero h2{font-size:22px;font-weight:900;margin-top:8px;position:relative}
+.modal-hero .cat-label{font-size:12px;color:var(--text2);margin-top:4px;position:relative}
+.modal-close{position:absolute;top:12px;right:12px;width:32px;height:32px;border-radius:50%;border:none;background:rgba(0,0,0,.3);color:#fff;font-size:18px;cursor:pointer;z-index:1;display:flex;align-items:center;justify-content:center}
+.modal-body{padding:20px 24px 24px}
+.section-title{font-size:13px;font-weight:700;margin-bottom:10px;display:flex;align-items:center;gap:6px}
+.rating-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin-bottom:20px}
+.rating-box{background:var(--surface2);border-radius:var(--radius-sm);padding:12px;text-align:center}
+.rating-box .src{font-size:11px;color:var(--text3);margin-bottom:4px}
+.rating-box .val{font-size:22px;font-weight:900}
+.rating-box.naver .val{color:var(--green)}
+.rating-box.google .val{color:var(--blue)}
+.rating-box.blog .val{color:var(--text2)}
+.rating-box.insta .val{color:var(--accent2)}
+.wait-section{background:var(--surface2);border-radius:var(--radius-sm);padding:16px;margin-bottom:20px}
+.wait-big{font-size:32px;font-weight:900;text-align:center}
+.wait-big .unit{font-size:14px;font-weight:400;color:var(--text3)}
+.wait-bar{height:6px;background:var(--border);border-radius:3px;margin:10px 0;overflow:hidden}
+.wait-bar-fill{height:100%;border-radius:3px;transition:width .5s}
+.wait-bar-fill.low{background:var(--green)}
+.wait-bar-fill.mid{background:var(--gold)}
+.wait-bar-fill.high{background:var(--accent)}
+.hourly-bars{display:flex;gap:4px;align-items:flex-end;height:60px;margin-top:12px}
+.hourly-bar{flex:1;border-radius:3px 3px 0 0;min-width:0;position:relative;transition:height .3s}
+.hourly-label{font-size:9px;color:var(--text3);text-align:center;margin-top:4px}
+.menu-item{display:flex;gap:10px;padding:10px 0;border-bottom:1px solid var(--border)}
+.menu-item:last-child{border-bottom:none}
+.menu-item .m-emoji{font-size:20px;width:32px;text-align:center;padding-top:2px}
+.menu-item .m-info{flex:1}
+.menu-item .m-info .m-name{font-size:13px;font-weight:600;display:flex;align-items:center;gap:6px}
+.menu-item .m-info .m-desc{font-size:11px;color:var(--text3);margin-top:1px}
+.menu-item .m-price{font-size:13px;font-weight:700;color:var(--accent);white-space:nowrap;align-self:center}
+.best-tag{font-size:9px;padding:1px 6px;background:var(--accent);color:#fff;border-radius:8px;font-weight:700}
+.info-list{margin-bottom:16px}
+.info-row{display:flex;gap:8px;padding:6px 0;font-size:13px;align-items:flex-start}
+.info-row .info-icon{width:20px;text-align:center;flex-shrink:0}
+.info-row .info-val{color:var(--text2)}
+.modal-actions{display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap}
+.action-btn{flex:1;min-width:80px;padding:10px;border-radius:var(--radius-sm);border:1px solid var(--border);background:var(--surface2);color:var(--text);cursor:pointer;text-align:center;font-size:12px;font-weight:500;transition:all .2s;font-family:inherit}
+.action-btn:hover{border-color:var(--accent);color:var(--accent)}
+.action-btn .action-icon{font-size:18px;display:block;margin-bottom:2px}
+.tag-list{display:flex;gap:6px;flex-wrap:wrap}
+.tag{font-size:11px;padding:4px 10px;background:var(--surface2);border-radius:12px;color:var(--text2)}
+
+/* ===== TOAST ===== */
+.toast-container{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);z-index:2000;display:flex;flex-direction:column;gap:8px;align-items:center}
+.toast{padding:10px 20px;border-radius:var(--radius-sm);background:var(--surface2);border:1px solid var(--border);color:var(--text);font-size:13px;animation:toastIn .3s ease,toastOut .3s ease 2.2s forwards;box-shadow:0 4px 20px rgba(0,0,0,.4)}
+@keyframes toastIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+@keyframes toastOut{to{opacity:0;transform:translateY(10px)}}
+
+/* ===== RESPONSIVE ===== */
+@media(max-width:900px){
+  .sidebar{display:none}
+  .map-tab{flex-direction:column}
+  .card-grid{grid-template-columns:1fr}
+}
+@media(min-width:901px) and (max-width:1200px){
+  .card-grid{grid-template-columns:repeat(2,1fr)}
+}
+</style>
+</head>
+<body>
+<div class="app-wrap">
+  <!-- HEADER -->
+  <header class="header">
+    <div class="logo" onclick="switchTab('map')"><span class="mat">맛</span><span class="spot">Spot</span></div>
+    <div class="search-wrap">
+      <span class="icon">🔍</span>
+      <input type="text" id="searchInput" placeholder="맛집 이름, 카테고리, 태그 검색..." oninput="handleSearch(this.value)">
+    </div>
+    <div class="header-actions">
+      <button class="icon-btn" title="내 위치" onclick="centerMap()">📍</button>
+      <button class="icon-btn" title="맛집 등록" onclick="switchTab('my')">➕</button>
+    </div>
+  </header>
+
+  <!-- TABS -->
+  <nav class="tab-bar">
+    <button class="tab-btn active" data-tab="map" onclick="switchTab('map')">🗺️ 지도</button>
+    <button class="tab-btn" data-tab="list" onclick="switchTab('list')">📋 리스트</button>
+    <button class="tab-btn" data-tab="my" onclick="switchTab('my')">⭐ 나의 맛집</button>
+  </nav>
+
+  <!-- MAIN -->
+  <div class="main">
+    <!-- MAP TAB -->
+    <div class="tab-content active map-tab" id="tab-map">
+      <div class="map-container">
+        <div class="map-filters">
+          <button class="filter-chip active" data-cat="전체" onclick="filterMap('전체',this)">전체</button>
+          <button class="filter-chip" data-cat="한식" onclick="filterMap('한식',this)">🔴 한식</button>
+          <button class="filter-chip" data-cat="일식" onclick="filterMap('일식',this)">🔵 일식</button>
+          <button class="filter-chip" data-cat="중식" onclick="filterMap('중식',this)">🟠 중식</button>
+          <button class="filter-chip" data-cat="카페" onclick="filterMap('카페',this)">🟢 카페</button>
+          <button class="filter-chip" data-cat="내맛집" onclick="filterMap('내맛집',this)">🟡 내맛집</button>
+        </div>
+        <div id="kakaoMap"></div>
+      </div>
+      <div class="sidebar" id="sidebar"></div>
+    </div>
+
+    <!-- LIST TAB -->
+    <div class="tab-content list-tab" id="tab-list">
+      <div class="list-toolbar">
+        <button class="sort-btn active" data-sort="rating" onclick="sortList('rating',this)">⭐ 평점순</button>
+        <button class="sort-btn" data-sort="wait" onclick="sortList('wait',this)">⏱️ 대기 적은순</button>
+        <button class="sort-btn" data-sort="distance" onclick="sortList('distance',this)">📍 거리순</button>
+        <button class="sort-btn" data-sort="new" onclick="sortList('new',this)">🆕 최신순</button>
+      </div>
+      <div class="card-grid" id="cardGrid"></div>
+    </div>
+
+    <!-- MY TAB -->
+    <div class="tab-content my-tab" id="tab-my">
+      <div class="my-stats" id="myStats"></div>
+      <div class="my-form">
+        <h3>✏️ 맛집 등록</h3>
+        <div class="form-row">
+          <div class="field">
+            <label>이모지</label>
+            <div class="emoji-picker" id="emojiPicker"></div>
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="field"><label>가게명</label><input type="text" id="myName" placeholder="가게 이름"></div>
+          <div class="field"><label>카테고리</label>
+            <select id="myCat"><option>한식</option><option>일식</option><option>중식</option><option>카페</option><option>양식</option><option>기타</option></select>
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="field"><label>주소</label><input type="text" id="myAddr" placeholder="주소 입력"></div>
+        </div>
+        <div class="form-row">
+          <div class="field">
+            <label>내 평점</label>
+            <div class="star-input" id="starInput"></div>
+          </div>
+          <div class="field"><label>상태</label>
+            <select id="myStatus"><option value="visited">방문완료</option><option value="wishlist">가고싶어요</option></select>
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="field"><label>메모</label><textarea id="myMemo" rows="2" placeholder="간단한 메모..."></textarea></div>
+        </div>
+        <div style="display:flex;gap:8px;margin-top:6px">
+          <button class="btn-primary" onclick="saveMyRestaurant()">💾 저장</button>
+          <button class="btn-secondary" onclick="resetForm()">초기화</button>
+        </div>
+      </div>
+      <div id="myList"></div>
+    </div>
+  </div>
+</div>
+
+<!-- DETAIL MODAL -->
+<div class="modal-overlay" id="modalOverlay" onclick="if(event.target===this)closeModal()">
+  <div class="modal" id="modalContent"></div>
+</div>
+
+<!-- TOAST -->
+<div class="toast-container" id="toastContainer"></div>
+
+<script>
+// ===== DATA =====
+const RESTAURANTS = [
+  {id:1,name:'황금돼지 국밥',category:'한식',emoji:'🍜',type:'hot',lat:37.4301,lng:127.2551,address:'경기도 광주시 중앙로 45',hours:'08:00~21:00',phone:'031-123-4567',ratings:{naver:4.7,google:4.5,blog:92,instagram:1240},avgRating:4.6,distance:'180m',wait:{current:12,status:'mid',percent:55},tags:['#국밥맛집','#광주맛집','#해장'],menus:[{name:'돼지국밥',price:'8,000원',emoji:'🍲',desc:'진한 육수의 정통 돼지국밥',best:true},{name:'순대국밥',price:'8,000원',emoji:'🍲',desc:'부드러운 순대가 듬뿍'},{name:'수육',price:'18,000원',emoji:'🥩',desc:'직접 삶은 두꺼운 수육'}],description:'30년 전통의 국밥 전문점. 매일 새벽 직접 육수를 끓여 진하고 깊은 맛이 특징.'},
+  {id:2,name:'스시오마카세 료',category:'일식',emoji:'🍣',type:'best',lat:37.4315,lng:127.2589,address:'경기도 광주시 경안로 78',hours:'12:00~22:00 (월 휴무)',phone:'031-234-5678',ratings:{naver:4.9,google:4.8,blog:245,instagram:8900},avgRating:4.85,distance:'320m',wait:{current:35,status:'high',percent:85},tags:['#오마카세','#스시','#광주데이트'],menus:[{name:'런치 오마카세',price:'88,000원',emoji:'🍱',desc:'12피스 + 미소국',best:true},{name:'디너 오마카세',price:'150,000원',emoji:'🍣',desc:'20피스 풀코스'},{name:'사케동',price:'28,000원',emoji:'🐟',desc:'싱싱한 연어 덮밥'}],description:'경기 광주 최고의 오마카세. 매일 아침 노량진에서 직접 공수한 신선한 재료만 사용.'},
+  {id:3,name:'쭈꾸미네',category:'한식',emoji:'🌶️',type:'hot',lat:37.4278,lng:127.2534,address:'경기도 광주시 송정로 12',hours:'11:00~23:00',phone:'031-345-6789',ratings:{naver:4.5,google:4.3,blog:178,instagram:3400},avgRating:4.4,distance:'90m',wait:{current:5,status:'low',percent:20},tags:['#쭈꾸미','#매운맛','#술안주'],menus:[{name:'불쭈꾸미',price:'13,000원',emoji:'🌶️',desc:'중독적인 매운 양념',best:true},{name:'쭈삼볶음',price:'14,000원',emoji:'🥘',desc:'쭈꾸미+삼겹살 콤보'},{name:'볶음밥',price:'3,000원',emoji:'🍚',desc:'마무리 필수 볶음밥'}],description:'현지인들이 즐겨찾는 쭈꾸미 전문점. 직접 만든 비법 소스가 중독성 있음.'},
+  {id:4,name:'카페 블루문',category:'카페',emoji:'☕',type:'new',lat:37.4265,lng:127.2601,address:'경기도 광주시 탄벌로 23',hours:'09:00~22:00',phone:'031-456-7890',ratings:{naver:4.6,google:4.7,blog:89,instagram:12400},avgRating:4.65,distance:'450m',wait:{current:8,status:'low',percent:30},tags:['#감성카페','#인스타감성','#광주카페'],menus:[{name:'블루라떼',price:'7,500원',emoji:'💙',desc:'나비완두콩 라떼, 포토존 필수',best:true},{name:'크로플',price:'6,000원',emoji:'🧇',desc:'바삭한 수제 크로플'},{name:'아메리카노',price:'4,500원',emoji:'☕',desc:'스페셜티 원두 사용'}],description:'광주 탄벌동 감성 카페. 인스타 핫플로 내부 인테리어가 아름다워 사진 찍기 최적.'},
+  {id:5,name:'명동교자 광주점',category:'중식',emoji:'🥟',type:'good',lat:37.4288,lng:127.2523,address:'경기도 광주시 광주대로 56',hours:'11:30~21:00',phone:'031-567-8901',ratings:{naver:4.4,google:4.2,blog:134,instagram:2100},avgRating:4.3,distance:'220m',wait:{current:18,status:'mid',percent:60},tags:['#만두','#칼국수','#점심'],menus:[{name:'교자만두',price:'9,000원',emoji:'🥟',desc:'얇은 피에 꽉 찬 소',best:true},{name:'칼국수',price:'9,000원',emoji:'🍜',desc:'시원한 사골 칼국수'},{name:'비빔국수',price:'8,500원',emoji:'🍝',desc:'새콤달콤 비빔국수'}],description:'서울 명동 본점의 맛을 그대로 재현. 얇고 쫀득한 만두피가 특징.'},
+  {id:6,name:'마포 빵공장',category:'카페',emoji:'🥐',type:'new',lat:37.4255,lng:127.2615,address:'경기도 광주시 곤지암로 89',hours:'07:30~20:00 (재료소진시 마감)',phone:'031-678-9012',ratings:{naver:4.8,google:4.6,blog:67,instagram:5600},avgRating:4.7,distance:'610m',wait:{current:3,status:'low',percent:10},tags:['#베이커리','#크루아상','#아침식사'],menus:[{name:'버터크루아상',price:'4,200원',emoji:'🥐',desc:'100% 프랑스 버터 사용',best:true},{name:'소금빵',price:'3,500원',emoji:'🍞',desc:'겉바속촉 소금빵'},{name:'얼그레이번',price:'4,500원',emoji:'🫖',desc:'향긋한 얼그레이 크림'}],description:'매일 새벽 4시부터 직접 굽는 정통 프랑스 베이커리. 오전 11시면 대부분 소진.'}
+];
+
+const EMOJI_OPTIONS = ['🍜','🍣','🌶️','☕','🥟','🥐','🍔','🍕','🥩','🍝','🍛','🍰'];
+const CAT_COLORS = {한식:'#ff4b4b',일식:'#4ecdc4',중식:'#ff8c42',카페:'#06d6a0'};
+const LS_KEY = 'matspot_my_restaurants';
+
+let map, markers = [], myMarkers = [];
+let currentFilter = '전체';
+let currentSort = 'rating';
+let editId = null;
+let selectedEmoji = '🍜';
+let myRating = 0;
+
+// ===== INIT =====
+document.addEventListener('DOMContentLoaded', () => {
+  initMap();
+  renderSidebar();
+  renderCardGrid();
+  initMyTab();
+  initEmojiPicker();
+  initStarInput();
+});
+
+document.addEventListener('keydown', e => { if(e.key === 'Escape') closeModal(); });
+
+// ===== MAP =====
+function initMap() {
+  try {
+    const container = document.getElementById('kakaoMap');
+    map = new kakao.maps.Map(container, {
+      center: new kakao.maps.LatLng(37.4292, 127.2550),
+      level: 5
+    });
+    addMarkers(RESTAURANTS);
+    renderMyMarkers();
+  } catch(e) {
+    document.getElementById('kakaoMap').innerHTML = '<div style="display:flex;align-items:center;justify-content:center;height:100%;color:var(--text3);flex-direction:column;gap:8px;padding:20px;text-align:center"><div style="font-size:48px">🗺️</div><div style="font-size:16px;font-weight:700">카카오맵 API 키를 설정해주세요</div><div style="font-size:12px">index.html 상단의 YOUR_KAKAO_KEY를 발급받은 키로 교체하세요</div></div>';
+  }
+}
+
+function createMarkerContent(color, emoji) {
+  return `<div style="width:36px;height:36px;background:${color};border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:18px;border:2px solid rgba(255,255,255,.3);cursor:pointer;transition:transform .2s;box-shadow:0 2px 8px rgba(0,0,0,.3)" onmouseover="this.style.transform='scale(1.2)'" onmouseout="this.style.transform='scale(1)'">${emoji}</div>`;
+}
+
+function addMarkers(data) {
+  if (!map) return;
+  clearMarkers();
+  data.forEach(r => {
+    const color = CAT_COLORS[r.category] || '#ff4b4b';
+    const content = createMarkerContent(color, r.emoji);
+    const overlay = new kakao.maps.CustomOverlay({
+      position: new kakao.maps.LatLng(r.lat, r.lng),
+      content: content,
+      yAnchor: 1
+    });
+    overlay.setMap(map);
+    overlay.restaurantId = r.id;
+    // Click via event delegation
+    const el = overlay.getContent ? null : null; // kakao custom overlay click workaround
+    markers.push(overlay);
+  });
+  // Use click event on map container
+  document.getElementById('kakaoMap').addEventListener('click', e => {
+    const markerEl = e.target.closest('[onmouseover]');
+    if (!markerEl) return;
+    // Find which marker was clicked by position
+    const rect = markerEl.getBoundingClientRect();
+    let closest = null, minDist = Infinity;
+    RESTAURANTS.forEach(r => {
+      if (currentFilter !== '전체' && currentFilter !== '내맛집' && r.category !== currentFilter) return;
+      const proj = map.getProjectionFromLatLng ? null : null;
+      // Simpler: just open by matching emoji+text
+    });
+  });
+  // Better approach: wrap content with onclick
+  clearMarkers();
+  data.forEach(r => {
+    if (currentFilter !== '전체' && currentFilter !== '내맛집' && r.category !== currentFilter) return;
+    const color = CAT_COLORS[r.category] || '#ff4b4b';
+    const content = document.createElement('div');
+    content.innerHTML = `<div style="width:36px;height:36px;background:${color};border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:18px;border:2px solid rgba(255,255,255,.3);cursor:pointer;transition:transform .2s;box-shadow:0 2px 8px rgba(0,0,0,.3)">${r.emoji}</div>`;
+    content.style.cursor = 'pointer';
+    content.addEventListener('mouseover', () => content.firstChild.style.transform = 'scale(1.2)');
+    content.addEventListener('mouseout', () => content.firstChild.style.transform = 'scale(1)');
+    content.addEventListener('click', () => openModal(r));
+    const overlay = new kakao.maps.CustomOverlay({
+      position: new kakao.maps.LatLng(r.lat, r.lng),
+      content: content,
+      yAnchor: 1
+    });
+    overlay.setMap(map);
+    markers.push(overlay);
+  });
+}
+
+function clearMarkers() {
+  markers.forEach(m => m.setMap(null));
+  markers = [];
+}
+
+function renderMyMarkers() {
+  if (!map) return;
+  myMarkers.forEach(m => m.setMap(null));
+  myMarkers = [];
+  if (currentFilter !== '전체' && currentFilter !== '내맛집') return;
+  // My restaurants don't have coords typically, skip map markers for them
+}
+
+function filterMap(cat, btn) {
+  currentFilter = cat;
+  document.querySelectorAll('.filter-chip').forEach(c => c.classList.remove('active'));
+  btn.classList.add('active');
+  addMarkers(RESTAURANTS);
+  renderSidebar();
+}
+
+function centerMap() {
+  if (map) map.setCenter(new kakao.maps.LatLng(37.4292, 127.2550));
+}
+
+function panTo(lat, lng) {
+  if (map) map.panTo(new kakao.maps.LatLng(lat, lng));
+}
+
+// ===== SIDEBAR =====
+function renderSidebar() {
+  const sb = document.getElementById('sidebar');
+  let data = RESTAURANTS;
+  if (currentFilter !== '전체' && currentFilter !== '내맛집') data = data.filter(r => r.category === currentFilter);
+  sb.innerHTML = `<div class="sidebar-title">주변 맛집 <span>${data.length}개</span></div>` +
+    data.map(r => `
+      <div class="sidebar-item" onclick="panTo(${r.lat},${r.lng});openModal(RESTAURANTS.find(x=>x.id===${r.id}))">
+        <div class="sidebar-emoji" style="background:${CAT_COLORS[r.category]||'#ff4b4b'}22">${r.emoji}</div>
+        <div class="sidebar-info">
+          <h4>${r.name}</h4>
+          <div class="meta">
+            <span class="rating">★ ${r.avgRating}</span>
+            <span>${r.distance}</span>
+            <span>${r.category}</span>
+          </div>
+        </div>
+        <div class="wait-badge ${r.wait.status}"><span class="live-dot"></span>${r.wait.current}분</div>
+      </div>
+    `).join('');
+}
+
+// ===== LIST TAB =====
+function renderCardGrid(data) {
+  data = data || [...RESTAURANTS];
+  switch(currentSort) {
+    case 'rating': data.sort((a,b) => b.avgRating - a.avgRating); break;
+    case 'wait': data.sort((a,b) => a.wait.current - b.wait.current); break;
+    case 'distance': data.sort((a,b) => parseInt(a.distance) - parseInt(b.distance)); break;
+    case 'new': data.sort((a,b) => b.id - a.id); break;
+  }
+  document.getElementById('cardGrid').innerHTML = data.map(r => `
+    <div class="card" onclick="openModal(RESTAURANTS.find(x=>x.id===${r.id}))">
+      <div class="card-top">
+        <div class="card-emoji ${r.category}">${r.emoji}</div>
+        <div class="card-main">
+          <h3>${r.name}</h3>
+          <div class="card-sub">
+            <span>${r.category}</span>
+            <span class="dist">${r.distance}</span>
+            <span>${r.hours.split('~')[0]}~</span>
+          </div>
+        </div>
+        <div class="wait-badge ${r.wait.status}"><span class="live-dot"></span>${r.wait.current}분</div>
+      </div>
+      <div class="card-ratings">
+        <span class="pill naver">🟢 네이버 ${r.ratings.naver}</span>
+        <span class="pill google">🔵 구글 ${r.ratings.google}</span>
+        <span class="pill blog">📝 블로그 ${r.ratings.blog}</span>
+        <span class="pill insta">📸 ${r.ratings.instagram.toLocaleString()}</span>
+      </div>
+      <div class="card-bottom">
+        <div class="card-tags">${r.tags.join(' ')}</div>
+      </div>
+    </div>
+  `).join('');
+}
+
+function sortList(sort, btn) {
+  currentSort = sort;
+  document.querySelectorAll('.sort-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  renderCardGrid();
+}
+
+// ===== MODAL =====
+function openModal(r) {
+  if (!r) return;
+  const saved = getMyRestaurants().find(m => m.name === r.name);
+  const hourlyData = generateHourly();
+  document.getElementById('modalContent').innerHTML = `
+    <div class="modal-hero ${r.category}">
+      <button class="modal-close" onclick="closeModal()">✕</button>
+      <div class="big-emoji">${r.emoji}</div>
+      <h2>${r.name}</h2>
+      <div class="cat-label">${r.category} · ${r.distance}</div>
+    </div>
+    <div class="modal-body">
+      <div class="section-title">📊 통합 평점</div>
+      <div class="rating-grid">
+        <div class="rating-box naver"><div class="src">🟢 네이버</div><div class="val">${r.ratings.naver}</div></div>
+        <div class="rating-box google"><div class="src">🔵 구글</div><div class="val">${r.ratings.google}</div></div>
+        <div class="rating-box blog"><div class="src">📝 블로그</div><div class="val">${r.ratings.blog}건</div></div>
+        <div class="rating-box insta"><div class="src">📸 인스타</div><div class="val">${r.ratings.instagram.toLocaleString()}</div></div>
+      </div>
+
+      <div class="section-title">⏱️ 실시간 대기 현황</div>
+      <div class="wait-section">
+        <div class="wait-big" style="color:${r.wait.status==='low'?'var(--green)':r.wait.status==='mid'?'var(--gold)':'var(--accent)'}">
+          ${r.wait.current}<span class="unit">분</span>
+        </div>
+        <div class="wait-bar"><div class="wait-bar-fill ${r.wait.status}" style="width:${r.wait.percent}%"></div></div>
+        <div style="font-size:11px;color:var(--text3);text-align:center;margin-bottom:8px">혼잡도 ${r.wait.percent}%</div>
+        <div style="font-size:11px;color:var(--text3);margin-bottom:4px">시간대별 혼잡도</div>
+        <div class="hourly-bars">
+          ${hourlyData.map((h,i) => `<div style="flex:1;display:flex;flex-direction:column;align-items:center">
+            <div style="width:100%;background:${h>70?'var(--accent)':h>40?'var(--gold)':'var(--green)'};height:${h*0.6}px;border-radius:3px 3px 0 0;min-height:4px;opacity:${i===getHourIndex()?'1':'0.5'}"></div>
+            <div class="hourly-label">${11+i}</div>
+          </div>`).join('')}
+        </div>
+      </div>
+
+      <div class="section-title">🍽️ 추천 메뉴</div>
+      ${r.menus.map(m => `
+        <div class="menu-item">
+          <div class="m-emoji">${m.emoji}</div>
+          <div class="m-info">
+            <div class="m-name">${m.name} ${m.best?'<span class="best-tag">BEST</span>':''}</div>
+            <div class="m-desc">${m.desc}</div>
+          </div>
+          <div class="m-price">${m.price}</div>
+        </div>
+      `).join('')}
+
+      <div style="margin-top:16px">
+        <div class="section-title">📌 기본정보</div>
+        <div class="info-list">
+          <div class="info-row"><span class="info-icon">🕐</span><span class="info-val">${r.hours}</span></div>
+          <div class="info-row"><span class="info-icon">📞</span><span class="info-val">${r.phone}</span></div>
+          <div class="info-row"><span class="info-icon">📍</span><span class="info-val">${r.address}</span></div>
+        </div>
+      </div>
+
+      <div class="modal-actions">
+        <button class="action-btn" onclick="window.open('https://map.kakao.com/link/to/${encodeURIComponent(r.name)},${r.lat},${r.lng}')"><span class="action-icon">🧭</span>길찾기</button>
+        <button class="action-btn" onclick="location.href='tel:${r.phone}'"><span class="action-icon">📞</span>전화</button>
+        <button class="action-btn" onclick="toggleSave('${r.name}','${r.emoji}','${r.category}')"><span class="action-icon">${saved?'💛':'🤍'}</span>${saved?'저장됨':'저장'}</button>
+        <button class="action-btn" onclick="shareRestaurant('${r.name}')"><span class="action-icon">🔗</span>공유</button>
+      </div>
+
+      <div class="tag-list">${r.tags.map(t => `<span class="tag">${t}</span>`).join('')}</div>
+
+      <p style="margin-top:14px;font-size:12px;color:var(--text2);line-height:1.6">${r.description}</p>
+    </div>
+  `;
+  document.getElementById('modalOverlay').classList.add('show');
+}
+
+function closeModal() {
+  document.getElementById('modalOverlay').classList.remove('show');
+}
+
+function generateHourly() {
+  // Generate pseudo-random hourly congestion data for 11~19
+  return Array.from({length:9}, (_,i) => {
+    const base = [30,45,80,90,60,50,75,85,40];
+    return Math.min(100, Math.max(10, base[i] + Math.floor(Math.random()*15 - 7)));
+  });
+}
+
+function getHourIndex() {
+  const h = new Date().getHours();
+  return Math.max(0, Math.min(8, h - 11));
+}
+
+// ===== SEARCH =====
+function handleSearch(q) {
+  q = q.trim().toLowerCase();
+  if (!q) { switchTab('list'); renderCardGrid(); return; }
+  switchTab('list');
+  const filtered = RESTAURANTS.filter(r =>
+    r.name.toLowerCase().includes(q) ||
+    r.category.toLowerCase().includes(q) ||
+    r.tags.some(t => t.toLowerCase().includes(q))
+  );
+  renderCardGrid(filtered);
+}
+
+// ===== TAB =====
+function switchTab(tab) {
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.toggle('active', b.dataset.tab === tab));
+  document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+  document.getElementById('tab-' + tab).classList.add('active');
+  if (tab === 'map' && map) setTimeout(() => map.relayout(), 100);
+  if (tab === 'list') renderCardGrid();
+  if (tab === 'my') renderMyTab();
+}
+
+// ===== MY RESTAURANTS =====
+function getMyRestaurants() {
+  try { return JSON.parse(localStorage.getItem(LS_KEY)) || []; } catch { return []; }
+}
+
+function saveToLS(data) {
+  localStorage.setItem(LS_KEY, JSON.stringify(data));
+}
+
+function initMyTab() {
+  renderMyTab();
+}
+
+function renderMyTab() {
+  const list = getMyRestaurants();
+  const visited = list.filter(r => r.status === 'visited').length;
+  const wishlist = list.filter(r => r.status === 'wishlist').length;
+  document.getElementById('myStats').innerHTML = `
+    <div class="stat-card"><div class="num">${list.length}</div><div class="label">총 등록수</div></div>
+    <div class="stat-card"><div class="num">${visited}</div><div class="label">방문완료</div></div>
+    <div class="stat-card"><div class="num">${wishlist}</div><div class="label">가고싶어요</div></div>
+  `;
+  document.getElementById('myList').innerHTML = list.length === 0
+    ? '<div style="text-align:center;color:var(--text3);padding:40px">아직 등록한 맛집이 없어요 ✨</div>'
+    : list.map(r => `
+      <div class="my-list-item">
+        <div class="emoji">${r.emoji}</div>
+        <div class="info">
+          <h4>${r.name} <span class="status-badge ${r.status}">${r.status==='visited'?'방문완료':'가고싶어요'}</span></h4>
+          <div class="sub">${r.category} · ${'★'.repeat(r.rating)}${'☆'.repeat(5-r.rating)}</div>
+          ${r.memo?`<div class="memo">💬 ${r.memo}</div>`:''}
+        </div>
+        <div class="my-list-actions">
+          <button onclick="editMyRestaurant('${r.id}')" title="수정">✏️</button>
+          <button onclick="deleteMyRestaurant('${r.id}')" title="삭제">🗑️</button>
+        </div>
+      </div>
+    `).join('');
+}
+
+function initEmojiPicker() {
+  document.getElementById('emojiPicker').innerHTML = EMOJI_OPTIONS.map(e =>
+    `<div class="emoji-opt ${e===selectedEmoji?'selected':''}" onclick="pickEmoji('${e}',this)">${e}</div>`
+  ).join('');
+}
+
+function pickEmoji(e, el) {
+  selectedEmoji = e;
+  document.querySelectorAll('.emoji-opt').forEach(o => o.classList.remove('selected'));
+  el.classList.add('selected');
+}
+
+function initStarInput() {
+  const wrap = document.getElementById('starInput');
+  wrap.innerHTML = Array.from({length:5}, (_,i) =>
+    `<span onclick="setRating(${i+1})" onmouseover="hoverRating(${i+1})" onmouseout="hoverRating(0)">★</span>`
+  ).join('');
+}
+
+function setRating(n) {
+  myRating = n;
+  updateStars(n);
+}
+
+function hoverRating(n) {
+  updateStars(n || myRating);
+}
+
+function updateStars(n) {
+  document.querySelectorAll('#starInput span').forEach((s,i) => s.classList.toggle('on', i < n));
+}
+
+function saveMyRestaurant() {
+  const name = document.getElementById('myName').value.trim();
+  if (!name) { toast('가게명을 입력해주세요'); return; }
+  const list = getMyRestaurants();
+  const entry = {
+    id: editId || Date.now().toString(),
+    emoji: selectedEmoji,
+    name,
+    category: document.getElementById('myCat').value,
+    address: document.getElementById('myAddr').value.trim(),
+    rating: myRating || 3,
+    status: document.getElementById('myStatus').value,
+    memo: document.getElementById('myMemo').value.trim()
+  };
+  if (editId) {
+    const idx = list.findIndex(r => r.id === editId);
+    if (idx >= 0) list[idx] = entry;
+    editId = null;
+  } else {
+    list.push(entry);
+  }
+  saveToLS(list);
+  resetForm();
+  renderMyTab();
+  toast(editId ? '수정 완료!' : '맛집이 등록되었어요! 🎉');
+}
+
+function editMyRestaurant(id) {
+  const list = getMyRestaurants();
+  const r = list.find(x => x.id === id);
+  if (!r) return;
+  editId = id;
+  selectedEmoji = r.emoji;
+  document.getElementById('myName').value = r.name;
+  document.getElementById('myCat').value = r.category;
+  document.getElementById('myAddr').value = r.address || '';
+  document.getElementById('myStatus').value = r.status;
+  document.getElementById('myMemo').value = r.memo || '';
+  myRating = r.rating;
+  updateStars(myRating);
+  initEmojiPicker();
+  document.querySelector('.my-form h3').textContent = '✏️ 맛집 수정';
+  document.querySelector('.my-form').scrollIntoView({behavior:'smooth'});
+}
+
+function deleteMyRestaurant(id) {
+  if (!confirm('정말 삭제하시겠어요?')) return;
+  const list = getMyRestaurants().filter(r => r.id !== id);
+  saveToLS(list);
+  renderMyTab();
+  toast('삭제되었어요');
+}
+
+function resetForm() {
+  editId = null;
+  document.getElementById('myName').value = '';
+  document.getElementById('myAddr').value = '';
+  document.getElementById('myMemo').value = '';
+  document.getElementById('myCat').value = '한식';
+  document.getElementById('myStatus').value = 'visited';
+  myRating = 0;
+  updateStars(0);
+  selectedEmoji = '🍜';
+  initEmojiPicker();
+  document.querySelector('.my-form h3').textContent = '✏️ 맛집 등록';
+}
+
+function toggleSave(name, emoji, category) {
+  const list = getMyRestaurants();
+  const idx = list.findIndex(r => r.name === name);
+  if (idx >= 0) {
+    list.splice(idx, 1);
+    saveToLS(list);
+    toast('저장 목록에서 제거했어요');
+  } else {
+    list.push({id:Date.now().toString(),emoji,name,category,address:'',rating:0,status:'wishlist',memo:''});
+    saveToLS(list);
+    toast('나의 맛집에 저장했어요! 💛');
+  }
+  closeModal();
+}
+
+function shareRestaurant(name) {
+  if (navigator.share) {
+    navigator.share({title:'맛Spot 추천',text:`${name} - 맛Spot에서 확인해보세요!`});
+  } else {
+    navigator.clipboard.writeText(`${name} - 맛Spot 추천 맛집!`).then(() => toast('링크가 복사되었어요!'));
+  }
+}
+
+// ===== TOAST =====
+function toast(msg) {
+  const container = document.getElementById('toastContainer');
+  const el = document.createElement('div');
+  el.className = 'toast';
+  el.textContent = msg;
+  container.appendChild(el);
+  setTimeout(() => el.remove(), 2500);
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,82 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" width="1024" height="1024">
+  <defs>
+    <!-- 배경 그라디언트 -->
+    <linearGradient id="bgGrad" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#1c1610"/>
+      <stop offset="100%" stop-color="#0a0a0a"/>
+    </linearGradient>
+    <!-- 핀 그라디언트 -->
+    <linearGradient id="pinGrad" x1="0.5" y1="0" x2="0.5" y2="1">
+      <stop offset="0%" stop-color="#ffe08a"/>
+      <stop offset="50%" stop-color="#ffd166"/>
+      <stop offset="100%" stop-color="#b8821e"/>
+    </linearGradient>
+    <!-- 핀 꼬리 그라디언트 -->
+    <linearGradient id="tailGrad" x1="0.5" y1="0" x2="0.5" y2="1">
+      <stop offset="0%" stop-color="#ffd166"/>
+      <stop offset="100%" stop-color="#b8821e"/>
+    </linearGradient>
+  </defs>
+
+  <!-- 1. 배경 -->
+  <rect width="1024" height="1024" rx="226" fill="url(#bgGrad)"/>
+
+  <!-- 2. 골드 테두리 -->
+  <rect width="1024" height="1024" rx="226" fill="none" stroke="#ffd166" stroke-width="10" opacity="0.6"/>
+  <rect x="31" y="31" width="962" height="962" rx="200" fill="none" stroke="#ffd166" stroke-width="2.5" opacity="0.2"/>
+
+  <!-- 3. 지도 패널 -->
+  <rect x="143" y="215" width="738" height="564" rx="51" fill="#1a1508" stroke="#ffd166" stroke-width="4" opacity="0.9"/>
+
+  <!-- 4. 격자선 가로 -->
+  <line x1="143" y1="369" x2="881" y2="369" stroke="#ffd166" stroke-width="2" opacity="0.18"/>
+  <line x1="143" y1="523" x2="881" y2="523" stroke="#ffd166" stroke-width="2" opacity="0.18"/>
+  <line x1="143" y1="677" x2="881" y2="677" stroke="#ffd166" stroke-width="2" opacity="0.18"/>
+
+  <!-- 5. 격자선 세로 -->
+  <line x1="328" y1="215" x2="328" y2="779" stroke="#ffd166" stroke-width="2" opacity="0.18"/>
+  <line x1="512" y1="215" x2="512" y2="779" stroke="#ffd166" stroke-width="2" opacity="0.18"/>
+  <line x1="697" y1="215" x2="697" y2="779" stroke="#ffd166" stroke-width="2" opacity="0.18"/>
+
+  <!-- 6. 도로 곡선 -->
+  <path d="M143,451 Q308,420 512,461 Q717,502 881,451" stroke="#ffd166" stroke-width="9" fill="none" stroke-linecap="round" opacity="0.22"/>
+  <path d="M143,605 Q359,574 512,615 Q666,656 881,605" stroke="#ffd166" stroke-width="6" fill="none" stroke-linecap="round" opacity="0.15"/>
+  <path d="M410,215 Q390,410 410,615 Q420,718 410,779" stroke="#ffd166" stroke-width="7" fill="none" stroke-linecap="round" opacity="0.2"/>
+  <path d="M626,215 Q605,436 615,615 Q620,708 626,779" stroke="#ffd166" stroke-width="4" fill="none" stroke-linecap="round" opacity="0.12"/>
+
+  <!-- 7. 작은 위치 점 -->
+  <circle cx="297" cy="400" r="13" fill="#ffd166" opacity="0.35"/>
+  <circle cx="708" cy="333" r="10" fill="#ffd166" opacity="0.25"/>
+  <circle cx="759" cy="605" r="10" fill="#ffd166" opacity="0.30"/>
+  <circle cx="266" cy="656" r="9" fill="#ffd166" opacity="0.20"/>
+
+  <!-- 8. 핀 그림자 -->
+  <ellipse cx="512" cy="779" rx="72" ry="20" fill="#000" opacity="0.4"/>
+
+  <!-- 13. 핀 꼬리 (핀 원 뒤에 그려야 겹침 방지이므로 먼저) -->
+  <path d="M430,543 Q512,759 512,779 Q512,759 594,543 Q554,574 512,574 Q471,574 430,543" fill="url(#tailGrad)"/>
+
+  <!-- 14. 꼬리 하이라이트 -->
+  <path d="M497,564 Q512,718 512,779 Q512,718 527,564" stroke="white" stroke-width="3" fill="none" opacity="0.2"/>
+
+  <!-- 9. 메인 핀 원 -->
+  <circle cx="512" cy="461" r="113" fill="url(#pinGrad)"/>
+
+  <!-- 10. 핀 광택 -->
+  <ellipse cx="476" cy="420" rx="46" ry="36" fill="white" opacity="0.18"/>
+
+  <!-- 11. 핀 내부 큰 원 -->
+  <circle cx="512" cy="461" r="51" fill="#0a0a0a"/>
+
+  <!-- 12. 핀 내부 골드 점 -->
+  <circle cx="512" cy="461" r="20" fill="#ffd166"/>
+
+  <!-- 15. 앱 이름 텍스트 -->
+  <text x="512" y="902" text-anchor="middle" font-family="'Black Han Sans', sans-serif" font-size="87" font-weight="900" fill="#ffd166" letter-spacing="5">맛Spot</text>
+
+  <!-- 16. 코너 장식 점 -->
+  <circle cx="185" cy="256" r="9" fill="#ffd166" opacity="0.3"/>
+  <circle cx="839" cy="256" r="9" fill="#ffd166" opacity="0.3"/>
+  <circle cx="185" cy="738" r="9" fill="#ffd166" opacity="0.3"/>
+  <circle cx="839" cy="738" r="9" fill="#ffd166" opacity="0.3"/>
+</svg>

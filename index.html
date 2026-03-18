@@ -4,7 +4,8 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>맛Spot - 나만의 맛집 지도</title>
-<!-- 카카오맵 API: YOUR_KAKAO_KEY 부분을 발급받은 JavaScript 키로 교체하세요 -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<!-- 카카오맵 API -->
 <script type="text/javascript" src="https://dapi.kakao.com/v2/maps/sdk.js?appkey=2ba4283f82cd69542ba169e428b5695f&libraries=services"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Black+Han+Sans&family=Noto+Sans+KR:wght@300;400;500;700;900&display=swap" rel="stylesheet">
@@ -34,6 +35,9 @@ html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--text);fon
 .header-actions{display:flex;gap:6px;margin-left:auto}
 .icon-btn{width:36px;height:36px;border-radius:50%;border:1px solid var(--border);background:var(--surface2);color:var(--text2);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:16px;transition:all .2s}
 .icon-btn:hover{border-color:var(--accent);color:var(--accent)}
+.auth-btn{height:32px;padding:0 12px;border-radius:16px;border:1px solid var(--border);background:var(--surface2);color:var(--text1);cursor:pointer;font-size:12px;font-weight:600;display:flex;align-items:center;gap:6px;transition:all .2s;white-space:nowrap;font-family:inherit}
+.auth-btn:hover{border-color:var(--accent);color:var(--accent)}
+.auth-btn img{width:22px;height:22px;border-radius:50%;object-fit:cover}
 
 /* ===== TABS ===== */
 .tab-bar{display:flex;background:var(--surface);border-bottom:1px solid var(--border);padding:0 20px}
@@ -229,6 +233,7 @@ html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--text);fon
     <div class="header-actions">
       <button class="icon-btn" title="내 위치" onclick="centerMap()">📍</button>
       <button class="icon-btn" title="맛집 등록" onclick="switchTab('my')">➕</button>
+      <button class="auth-btn" id="authBtn" onclick="signInWithGoogle()">🔑 로그인</button>
     </div>
   </header>
 
@@ -271,7 +276,7 @@ html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--text);fon
     <!-- MY TAB -->
     <div class="tab-content my-tab" id="tab-my">
       <div class="my-stats" id="myStats"></div>
-      <div class="my-form">
+      <div class="my-form" id="myForm">
         <h3>✏️ 맛집 등록</h3>
         <div class="form-row">
           <div class="field">
@@ -347,6 +352,60 @@ const EMOJI_OPTIONS = ['🍜','🍣','🌶️','☕','🥟','🥐','🍔','🍕'
 const CAT_COLORS = {한식:'#ff4b4b',일식:'#4ecdc4',중식:'#ff8c42',카페:'#06d6a0'};
 const LS_KEY = 'matspot_my_restaurants';
 
+// ===== SUPABASE =====
+const SUPA_URL = 'https://okcfrwjhjpqeolqbthxj.supabase.co';
+const SUPA_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9rY2Zyd2poanBxZW9scWJ0aHhqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM4MTMwMTAsImV4cCI6MjA4OTM4OTAxMH0.YI70w9Ux91SPF1cWvbaXUFc4MJLdBguEgxexbK8jesQ';
+const supa = window.supabase.createClient(SUPA_URL, SUPA_KEY);
+let currentUser = null;
+let myRestaurantsList = [];
+
+async function initAuth() {
+  const { data: { session } } = await supa.auth.getSession();
+  currentUser = session?.user || null;
+  await loadMyRestaurants();
+  updateAuthUI(currentUser);
+  supa.auth.onAuthStateChange(async (event, session) => {
+    currentUser = session?.user || null;
+    await loadMyRestaurants();
+    updateAuthUI(currentUser);
+    renderMyTab();
+  });
+}
+
+async function signInWithGoogle() {
+  await supa.auth.signInWithOAuth({
+    provider: 'google',
+    options: { redirectTo: window.location.origin }
+  });
+}
+
+async function signOut() {
+  await supa.auth.signOut();
+}
+
+function updateAuthUI(user) {
+  const btn = document.getElementById('authBtn');
+  if (!btn) return;
+  if (user) {
+    const avatar = user.user_metadata?.avatar_url;
+    const name = user.user_metadata?.full_name?.split(' ')[0] || '나';
+    btn.innerHTML = `${avatar ? `<img src="${avatar}" onerror="this.remove()">` : '👤'} ${name}`;
+    btn.onclick = () => { if (confirm('로그아웃 하시겠어요?')) signOut(); };
+  } else {
+    btn.innerHTML = '🔑 로그인';
+    btn.onclick = signInWithGoogle;
+  }
+}
+
+async function loadMyRestaurants() {
+  if (!currentUser) {
+    try { myRestaurantsList = JSON.parse(localStorage.getItem(LS_KEY)) || []; } catch { myRestaurantsList = []; }
+    return;
+  }
+  const { data } = await supa.from('user_restaurants').select('*').order('created_at', { ascending: false });
+  myRestaurantsList = data || [];
+}
+
 let map, markers = [], myMarkers = [];
 let currentFilter = '전체';
 let currentSort = 'rating';
@@ -358,6 +417,7 @@ let ps = null;
 
 // ===== INIT =====
 document.addEventListener('DOMContentLoaded', () => {
+  initAuth();
   initMap();
   renderSidebar();
   renderCardGrid();
@@ -826,19 +886,34 @@ function switchTab(tab) {
 }
 
 // ===== MY RESTAURANTS =====
-function getMyRestaurants() {
-  try { return JSON.parse(localStorage.getItem(LS_KEY)) || []; } catch { return []; }
-}
+function getMyRestaurants() { return myRestaurantsList; }
 
 function saveToLS(data) {
+  myRestaurantsList = data;
   localStorage.setItem(LS_KEY, JSON.stringify(data));
 }
 
-function initMyTab() {
-  renderMyTab();
-}
+function initMyTab() { renderMyTab(); }
 
 function renderMyTab() {
+  const formEl = document.getElementById('myForm');
+  if (!currentUser) {
+    if (formEl) formEl.style.display = 'none';
+    document.getElementById('myStats').innerHTML = '';
+    document.getElementById('myList').innerHTML = `
+      <div style="text-align:center;padding:60px 20px">
+        <div style="font-size:56px;margin-bottom:16px">🔐</div>
+        <h3 style="font-size:18px;margin-bottom:8px">로그인이 필요해요</h3>
+        <p style="color:var(--text3);font-size:13px;line-height:1.6;margin-bottom:24px">
+          나만의 맛집 리스트를<br>어디서든 불러올 수 있어요
+        </p>
+        <button onclick="signInWithGoogle()" style="padding:12px 24px;background:var(--accent);color:#fff;border:none;border-radius:12px;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit">
+          🔑 구글로 로그인
+        </button>
+      </div>`;
+    return;
+  }
+  if (formEl) formEl.style.display = '';
   const list = getMyRestaurants();
   const visited = list.filter(r => r.status === 'visited').length;
   const wishlist = list.filter(r => r.status === 'wishlist').length;
@@ -897,12 +972,11 @@ function updateStars(n) {
   document.querySelectorAll('#starInput span').forEach((s,i) => s.classList.toggle('on', i < n));
 }
 
-function saveMyRestaurant() {
+async function saveMyRestaurant() {
   const name = document.getElementById('myName').value.trim();
   if (!name) { toast('가게명을 입력해주세요'); return; }
-  const list = getMyRestaurants();
+  const isEdit = !!editId;
   const entry = {
-    id: editId || Date.now().toString(),
     emoji: selectedEmoji,
     name,
     category: document.getElementById('myCat').value,
@@ -911,17 +985,27 @@ function saveMyRestaurant() {
     status: document.getElementById('myStatus').value,
     memo: document.getElementById('myMemo').value.trim()
   };
-  if (editId) {
-    const idx = list.findIndex(r => r.id === editId);
-    if (idx >= 0) list[idx] = entry;
-    editId = null;
+  if (!currentUser) {
+    const list = getMyRestaurants();
+    if (isEdit) {
+      const idx = list.findIndex(r => r.id === editId);
+      if (idx >= 0) list[idx] = { ...entry, id: editId };
+    } else {
+      list.push({ ...entry, id: Date.now().toString() });
+    }
+    saveToLS(list);
   } else {
-    list.push(entry);
+    if (isEdit) {
+      await supa.from('user_restaurants').update(entry).eq('id', editId);
+    } else {
+      await supa.from('user_restaurants').insert({ ...entry, user_id: currentUser.id });
+    }
+    await loadMyRestaurants();
   }
-  saveToLS(list);
+  editId = null;
   resetForm();
   renderMyTab();
-  toast(editId ? '수정 완료!' : '맛집이 등록되었어요! 🎉');
+  toast(isEdit ? '수정 완료!' : '맛집이 등록되었어요! 🎉');
 }
 
 function editMyRestaurant(id) {
@@ -942,10 +1026,14 @@ function editMyRestaurant(id) {
   document.querySelector('.my-form').scrollIntoView({behavior:'smooth'});
 }
 
-function deleteMyRestaurant(id) {
+async function deleteMyRestaurant(id) {
   if (!confirm('정말 삭제하시겠어요?')) return;
-  const list = getMyRestaurants().filter(r => r.id !== id);
-  saveToLS(list);
+  if (!currentUser) {
+    saveToLS(getMyRestaurants().filter(r => r.id !== id));
+  } else {
+    await supa.from('user_restaurants').delete().eq('id', id);
+    await loadMyRestaurants();
+  }
   renderMyTab();
   toast('삭제되었어요');
 }
@@ -964,16 +1052,26 @@ function resetForm() {
   document.querySelector('.my-form h3').textContent = '✏️ 맛집 등록';
 }
 
-function toggleSave(name, emoji, category) {
+async function toggleSave(name, emoji, category) {
   const list = getMyRestaurants();
   const idx = list.findIndex(r => r.name === name);
   if (idx >= 0) {
-    list.splice(idx, 1);
-    saveToLS(list);
+    if (!currentUser) {
+      list.splice(idx, 1);
+      saveToLS(list);
+    } else {
+      await supa.from('user_restaurants').delete().eq('id', list[idx].id);
+      await loadMyRestaurants();
+    }
     toast('저장 목록에서 제거했어요');
   } else {
-    list.push({id:Date.now().toString(),emoji,name,category,address:'',rating:0,status:'wishlist',memo:''});
-    saveToLS(list);
+    if (!currentUser) {
+      list.push({id:Date.now().toString(),emoji,name,category,address:'',rating:0,status:'wishlist',memo:''});
+      saveToLS(list);
+    } else {
+      await supa.from('user_restaurants').insert({user_id:currentUser.id,emoji,name,category,address:'',rating:0,status:'wishlist',memo:''});
+      await loadMyRestaurants();
+    }
     toast('나의 맛집에 저장했어요! 💛');
   }
   closeModal();
